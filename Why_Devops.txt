@@ -1,0 +1,278 @@
+# Before DevOps (Around 10+ Years Ago)
+
+## Main Idea
+
+Work was **silo based**.
+
+Each team did only its part.
+No one owned the full delivery.
+
+That is the root problem.
+
+---
+
+# Old Structure
+
+```
+Customer
+   ↑
+Support Team
+   ↑
+Operations / Server Admin
+   ↑
+Build & Release Engineer
+   ↑
+System Admin
+   ↑
+Developers
+```
+
+Every handoff created delay and blame.
+
+---
+
+# Step-by-Step Flow
+
+## 1. Developers
+
+**What they did**
+
+* Write code
+* Run locally
+* Say "my code works"
+
+**What they did NOT do**
+
+* Deployment
+* Server setup
+* Production fixes
+
+They simply pushed code to repository.
+
+---
+
+## 2. System Admin
+
+**Role**
+
+* Prepare machines
+* Install OS
+* Configure servers
+* Manage permissions
+
+**Problem**
+
+* Manual configuration
+* Each server different
+
+"Works on my machine" started here.
+
+---
+
+## 3. Build & Release Engineer
+
+**Role**
+
+* Take code
+* Compile
+* Create build (WAR, JAR, EXE)
+* Package release
+
+**Process**
+
+Mostly manual.
+
+* Copy files
+* Run scripts
+* Email teams
+
+If build failed → long delays.
+
+---
+
+## 4. Server / Operations Team
+
+**Role**
+
+* Deploy build into production
+* Monitor servers
+* Restart services
+* Handle outages
+
+**Typical Situation**
+
+Deployment night:
+
+* Many people on call
+* Manual commands
+* High risk
+
+If issue happens:
+
+Ops says: "Code problem"
+Dev says: "Server problem"
+
+---
+
+## 5. Support Team
+
+**Role**
+
+* Talk to customer
+* Collect issues
+* Raise tickets
+
+Customer problems reached devs very late.
+
+---
+
+# Real Pain Points
+
+## 1. Too Many Handovers
+
+Every step depended on another team.
+
+Delay chain:
+
+```
+Dev → SysAdmin → Build → Ops → Support → Customer
+```
+
+Each transition = waiting time.
+
+---
+
+## 2. No Ownership
+
+No one owned full delivery.
+
+Result:
+
+* Blame culture
+* Slow fixes
+* Production fear
+
+---
+
+## 3. Manual Work Everywhere
+
+Examples:
+
+* Manual server setup
+* Manual deployment
+* Manual testing
+* Manual rollback
+
+Manual = errors.
+
+---
+
+## 4. Release Frequency
+
+Typical:
+
+* Once in 3 months
+* Or 6 months
+
+Because deployment was risky.
+
+---
+
+# Visual Comparison
+
+## Old Model
+
+```
+Dev  |  SysAdmin  |  Build  |  Ops  |  Support
+---- silos ----
+
+Slow
+Manual
+Blame
+Late delivery
+```
+
+---
+
+# Why DevOps Was Born
+
+Simple reason:
+
+**Business wanted faster delivery.**
+
+Customers started expecting:
+
+* Frequent updates
+* Quick bug fixes
+* Online services always running
+
+Old model could not support this.
+
+---
+
+# DevOps Idea
+
+Remove silos.
+
+One continuous flow.
+
+```
+Plan → Code → Build → Test → Deploy → Monitor → Feedback
+```
+
+Same people share responsibility.
+
+---
+
+# What Changed With DevOps
+
+## Before
+
+```
+Many teams
+Manual steps
+Late releases
+High failure
+```
+
+## After
+
+```
+Automation
+CI/CD
+Shared ownership
+Fast releases
+Continuous feedback
+```
+
+---
+
+# One Brutal Truth
+
+Old system failed because:
+
+**Developers were rewarded for writing code,
+Operations were punished for running it.**
+
+That conflict forced DevOps culture.
+
+---
+
+# Final Simple Visualization
+
+## Without DevOps
+
+```
+Dev → Throw code → Ops → Fight → Delay → Customer waits
+```
+
+## With DevOps
+
+```
+Dev + Ops together
+Automated pipeline
+Continuous delivery
+Customer gets faster value
+```
+
+---
