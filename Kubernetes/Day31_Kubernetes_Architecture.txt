@@ -1,0 +1,599 @@
+# Day 31: Kubernetes Architecture - Simple Guide
+
+## FUN FACT: Why K8s?
+
+**Kubernetes = K8s**
+
+Why? Count the letters between K and s:
+- K-u-b-e-r-n-e-t-e-s
+- K + 8 letters + s = K8s
+
+Simple! 😊
+
+---
+
+## KUBERNETES ARCHITECTURE OVERVIEW
+
+Kubernetes has TWO main parts:
+
+```
+Kubernetes Cluster
+├── Control Plane (Master) - The Brain
+└── Data Plane (Workers) - The Muscles
+```
+
+**Control Plane** = Makes decisions
+**Data Plane** = Does the work (runs containers)
+
+---
+
+## PART 1: DATA PLANE (WORKER NODES)
+
+### What is a Worker Node?
+
+A computer that runs your containers (inside Pods).
+
+### 3 Components on Every Worker Node:
+
+```
+Worker Node
+├── 1. Kubelet
+├── 2. Kube-proxy
+└── 3. Container Runtime
+```
+
+---
+
+### Component 1: Kubelet
+
+**What it does:** Runs and manages Pods on the node.
+
+**Think of it as:** A supervisor who ensures workers are doing their job.
+
+**Responsibilities:**
+- Starts Pods
+- Monitors Pods (are they running?)
+- Reports to Master: "Pod is healthy" or "Pod crashed!"
+- Restarts Pods if needed
+
+**Simple Analogy:**
+- You = Manager
+- Kubelet = Supervisor
+- Pods = Workers
+
+Supervisor ensures workers are always working!
+
+---
+
+### Component 2: Kube-proxy
+
+**What it does:** Handles networking for Pods.
+
+**Responsibilities:**
+- Gives IP addresses to Pods
+- Load balances traffic between Pods
+- Routes traffic to correct Pod
+
+**Simple Analogy:**
+- Kube-proxy = Traffic police
+- Directs traffic to correct destination
+- Ensures no traffic jams
+
+**Example:**
+- You have 3 Pods running same app
+- User request comes in
+- Kube-proxy sends request to Pod 1
+- Next request goes to Pod 2
+- Next request goes to Pod 3
+- Round-robin load balancing!
+
+---
+
+### Component 3: Container Runtime
+
+**What it does:** Actually runs the containers.
+
+**Options:**
+- Docker
+- containerd
+- CRI-O
+
+**Simple Analogy:**
+- Container Runtime = Engine in a car
+- Without engine, car doesn't move
+- Without runtime, containers don't run
+
+**Note:** Kubernetes supports multiple runtimes, not just Docker!
+
+---
+
+## WORKER NODE SUMMARY
+
+Every Worker Node has:
+
+1. **Kubelet** - Manages Pods
+2. **Kube-proxy** - Handles networking
+3. **Container Runtime** - Runs containers
+
+```
+User Request
+     ↓
+Control Plane (decides which node)
+     ↓
+Worker Node
+     ↓
+Kubelet (starts Pod)
+     ↓
+Container Runtime (runs container)
+     ↓
+Kube-proxy (handles networking)
+     ↓
+App is running!
+```
+
+---
+
+## PART 2: CONTROL PLANE (MASTER NODE)
+
+### What is Control Plane?
+
+The brain of Kubernetes. Makes all decisions.
+
+### 5 Components in Control Plane:
+
+```
+Control Plane (Master)
+├── 1. API Server (Heart)
+├── 2. Scheduler
+├── 3. etcd (Database)
+├── 4. Controller Manager
+└── 5. Cloud Controller Manager
+```
+
+---
+
+### Component 1: API Server (Most Important!)
+
+**What it does:** Heart of Kubernetes. Receives ALL requests.
+
+**Think of it as:** Reception desk in a hospital.
+
+**Responsibilities:**
+- Receives all commands (kubectl commands)
+- Authenticates users
+- Validates requests
+- Sends instructions to other components
+
+**Example:**
+```
+You: kubectl create pod
+     ↓
+API Server: "Okay, let me process this"
+     ↓
+API Server: "Scheduler, find a node for this pod"
+     ↓
+API Server: "Kubelet, start the pod"
+```
+
+**Everything goes through API Server!**
+
+---
+
+### Component 2: Scheduler
+
+**What it does:** Decides which Worker Node should run the Pod.
+
+**Think of it as:** HR manager assigning tasks to employees.
+
+**How it decides:**
+- Which node has free CPU?
+- Which node has free memory?
+- Any special requirements?
+- Picks the best node!
+
+**Example:**
+```
+API Server: "I have a new Pod to run"
+Scheduler: "Let me check..."
+Scheduler: "Node 1 is busy"
+Scheduler: "Node 2 has free resources"
+Scheduler: "Put Pod on Node 2!"
+```
+
+**Scheduler doesn't run the Pod, just decides WHERE to run it!**
+
+---
+
+### Component 3: etcd (Database)
+
+**What it does:** Stores ALL cluster information.
+
+**Think of it as:** Kubernetes's memory/brain.
+
+**What it stores:**
+- Which Pods are running?
+- On which nodes?
+- What's the cluster state?
+- All configuration data
+
+**Simple Analogy:**
+- etcd = Your phone's memory
+- Stores all your photos, contacts, apps
+- Without it, you lose everything!
+
+**Why important:**
+- Backup and restore cluster
+- Disaster recovery
+- Cluster state management
+
+**Example:**
+```
+You: "How many Pods are running?"
+API Server asks etcd: "What's the current state?"
+etcd: "5 Pods running on Node 1, 3 on Node 2"
+```
+
+---
+
+### Component 4: Controller Manager
+
+**What it does:** Manages controllers that maintain desired state.
+
+**Think of it as:** Manager of managers.
+
+**What are Controllers?**
+Controllers keep things running the way you want
+
+**Example - Replica Controller:**
+```
+You say: "I want 3 Pods running"
+Replica Controller: "Okay, I'll ensure 3 Pods are ALWAYS running"
+
+If 1 Pod dies:
+Replica Controller: "Oh no! Only 2 Pods running!"
+Replica Controller: "Let me create 1 more Pod"
+Result: 3 Pods running again!
+```
+
+**Other Controllers:**
+- Node Controller (monitors nodes)
+- Job Controller (manages jobs)
+- Service Controller (manages services)
+
+**Controller Manager = Boss of all these controllers**
+
+---
+
+### Component 5: Cloud Controller Manager (Optional)
+
+**What it does:** Connects Kubernetes to cloud providers (AWS, Azure, GCP).
+
+**When needed:**
+- Running Kubernetes on AWS (EKS)
+- Running Kubernetes on Azure (AKS)
+- Running Kubernetes on GCP (GKE)
+
+**When NOT needed:**
+- Running Kubernetes on-premise (your own servers)
+
+**What it does:**
+- Creates load balancers on cloud
+- Creates storage on cloud
+- Manages cloud-specific resources
+
+**Example:**
+```
+You: "Create a load balancer"
+     ↓
+Cloud Controller Manager: "Okay, I'll create AWS ELB"
+     ↓
+AWS creates load balancer
+```
+
+**Simple Analogy:**
+- Cloud Controller Manager = Translator
+- Translates Kubernetes language to Cloud language
+
+---
+
+## CONTROL PLANE SUMMARY
+
+5 Components:
+
+1. **API Server** - Heart, receives all requests
+2. **Scheduler** - Decides where to run Pods
+3. **etcd** - Database, stores everything
+4. **Controller Manager** - Ensures desired state
+5. **Cloud Controller Manager** - Connects to cloud (optional)
+
+---
+
+## COMPLETE ARCHITECTURE DIAGRAM
+
+```
+┌─────────────────────────────────────────┐
+│         CONTROL PLANE (Master)          │
+├─────────────────────────────────────────┤
+│  ┌──────────────┐  ┌────────────────┐  │
+│  │  API Server  │  │   Scheduler    │  │
+│  │   (Heart)    │  │ (Decides where)│  │
+│  └──────────────┘  └────────────────┘  │
+│                                         │
+│  ┌──────────────┐  ┌────────────────┐  │
+│  │     etcd     │  │   Controller   │  │
+│  │  (Database)  │  │    Manager     │  │
+│  └──────────────┘  └────────────────┘  │
+│                                         │
+│  ┌──────────────────────────────────┐  │
+│  │  Cloud Controller Manager (opt)  │  │
+│  └──────────────────────────────────┘  │
+└─────────────────────────────────────────┘
+                    ↓
+        ┌───────────────────────┐
+        │   DATA PLANE          │
+        └───────────────────────┘
+                    ↓
+    ┌───────────────────────────────┐
+    │      Worker Node 1            │
+    ├───────────────────────────────┤
+    │  ┌─────────┐  ┌────────────┐ │
+    │  │ Kubelet │  │ Kube-proxy │ │
+    │  └─────────┘  └────────────┘ │
+    │  ┌──────────────────────────┐│
+    │  │   Container Runtime      ││
+    │  └──────────────────────────┘│
+    │                               │
+    │  ┌─────────────────────────┐ │
+    │  │  Pod 1  │  Pod 2  │ ... │ │
+    │  └─────────────────────────┘ │
+    └───────────────────────────────┘
+
+    ┌───────────────────────────────┐
+    │      Worker Node 2            │
+    ├───────────────────────────────┤
+    │  ┌─────────┐  ┌────────────┐ │
+    │  │ Kubelet │  │ Kube-proxy │ │
+    │  └─────────┘  └────────────┘ │
+    │  ┌──────────────────────────┐│
+    │  │   Container Runtime      ││
+    │  └──────────────────────────┘│
+    │                               │
+    │  ┌─────────────────────────┐ │
+    │  │  Pod 3  │  Pod 4  │ ... │ │
+    │  └─────────────────────────┘ │
+    └───────────────────────────────┘
+```
+
+---
+
+## HOW IT ALL WORKS TOGETHER
+
+### Example: Creating a Pod
+
+**Step 1:** You run command
+```bash
+kubectl create pod my-app
+```
+
+**Step 2:** API Server receives request
+```
+API Server: "Got request to create pod"
+API Server: "Let me validate this"
+```
+
+**Step 3:** API Server stores in etcd
+```
+API Server → etcd: "Store this pod info"
+etcd: "Saved!"
+```
+
+**Step 4:** Scheduler picks a node
+```
+API Server → Scheduler: "Find a node for this pod"
+Scheduler: "Node 2 has free resources"
+Scheduler → API Server: "Put it on Node 2"
+```
+
+**Step 5:** API Server tells Kubelet
+```
+API Server → Kubelet (Node 2): "Start this pod"
+```
+
+**Step 6:** Kubelet starts Pod
+```
+Kubelet → Container Runtime: "Run this container"
+Container Runtime: "Container running!"
+```
+
+**Step 7:** Kube-proxy sets up networking
+```
+Kube-proxy: "Assigning IP address"
+Kube-proxy: "Setting up routing"
+```
+
+**Step 8:** Pod is running!
+```
+Kubelet → API Server: "Pod is running!"
+API Server → etcd: "Update: Pod is running"
+```
+
+**Step 9:** Controller Manager monitors
+```
+Controller Manager: "Checking... yes, pod is running"
+Controller Manager: "All good!"
+```
+
+---
+
+## DOCKER vs KUBERNETES ARCHITECTURE
+
+### Docker (Simple):
+
+```
+Docker Host
+├── Docker Daemon
+└── Containers
+```
+
+One machine, simple!
+
+### Kubernetes (Advanced):
+
+```
+Cluster
+├── Master (Control Plane)
+│   ├── API Server
+│   ├── Scheduler
+│   ├── etcd
+│   └── Controllers
+└── Workers (Data Plane)
+    ├── Kubelet
+    ├── Kube-proxy
+    └── Pods
+```
+
+Multiple machines, complex but powerful!
+
+---
+
+## KEY DIFFERENCES
+
+| Feature | Docker | Kubernetes |
+|---------|--------|------------|
+| Machines | 1 | Many |
+| Components | 2-3 | 8 |
+| Complexity | Simple | Complex |
+| Auto-healing | ❌ | ✅ |
+| Auto-scaling | ❌ | ✅ |
+| Production | ❌ | ✅ |
+
+---
+
+## INTERVIEW QUESTIONS & ANSWERS
+
+### Q1: What are the components of Kubernetes?
+
+**Answer:**
+"Kubernetes has two planes:
+
+Control Plane (Master):
+1. API Server - Receives all requests
+2. Scheduler - Decides where to run Pods
+3. etcd - Stores cluster data
+4. Controller Manager - Maintains desired state
+5. Cloud Controller Manager - Cloud integration (optional)
+
+Data Plane (Workers):
+1. Kubelet - Manages Pods on node
+2. Kube-proxy - Handles networking
+3. Container Runtime - Runs containers"
+
+---
+
+### Q2: What is API Server?
+
+**Answer:**
+"API Server is the heart of Kubernetes. All requests go through it - whether from kubectl commands, other components, or external systems. It authenticates, validates, and processes all requests. Without API Server, Kubernetes doesn't work."
+
+---
+
+### Q3: What is the role of Scheduler?
+
+**Answer:**
+"Scheduler decides which Worker Node should run a Pod. It checks available resources (CPU, memory) on each node and picks the best one. It doesn't actually start the Pod - that's Kubelet's job. Scheduler just makes the decision."
+
+---
+
+### Q4: What is etcd?
+
+**Answer:**
+"etcd is Kubernetes's database - a key-value store that holds all cluster information. It stores which Pods are running, on which nodes, cluster configuration, and current state. It's critical for backup and disaster recovery. If etcd fails, you lose cluster state."
+
+---
+
+### Q5: Difference between Kubelet and Kube-proxy?
+
+**Answer:**
+"Kubelet manages Pods - starts them, monitors them, reports their status. It's the Pod manager.
+
+Kube-proxy handles networking - assigns IP addresses, load balances traffic, routes requests. It's the network manager.
+
+Both run on every Worker Node but do different jobs."
+
+---
+
+### Q6: What is Controller Manager?
+
+**Answer:**
+"Controller Manager runs controllers that maintain desired state. For example, if you want 3 Pods running, Replica Controller ensures 3 are always running. If one dies, it creates a new one. Controller Manager is the boss of all these controllers."
+
+---
+
+### Q7: Why do we need Cloud Controller Manager?
+
+**Answer:**
+"Cloud Controller Manager connects Kubernetes to cloud providers like AWS, Azure, or GCP. When you create a load balancer in Kubernetes, Cloud Controller Manager translates that to AWS ELB or Azure Load Balancer. It's only needed when running Kubernetes on cloud, not on-premise."
+
+---
+
+### Q8: What happens when you create a Pod?
+
+**Answer:**
+"1. kubectl sends request to API Server
+2. API Server validates and stores in etcd
+3. Scheduler picks a Worker Node
+4. API Server tells Kubelet on that node
+5. Kubelet tells Container Runtime to start container
+6. Kube-proxy sets up networking
+7. Pod is running!
+8. Kubelet reports back to API Server
+9. API Server updates etcd"
+
+---
+
+## SIMPLE DEFINITIONS TO MEMORIZE
+
+**Control Plane:** Brain of Kubernetes, makes decisions
+
+**Data Plane:** Muscles of Kubernetes, does the work
+
+**API Server:** Heart of Kubernetes, receives all requests
+
+**Scheduler:** Decides where to run Pods
+
+**etcd:** Database storing all cluster information
+
+**Controller Manager:** Ensures desired state is maintained
+
+**Kubelet:** Manages Pods on Worker Node
+
+**Kube-proxy:** Handles networking and load balancing
+
+**Container Runtime:** Runs the actual containers
+
+---
+
+## KEY TAKEAWAYS
+
+1. **Two planes:** Control (brain) and Data (muscles)
+2. **Control Plane has 5 components** (API Server most important)
+3. **Worker Node has 3 components** (Kubelet, Kube-proxy, Runtime)
+4. **API Server = Heart** - Everything goes through it
+5. **etcd = Memory** - Stores everything
+6. **Scheduler = Decision maker** - Where to run Pods
+7. **Kubelet = Pod manager** - Runs and monitors Pods
+8. **Kube-proxy = Network manager** - Handles traffic
+
+---
+
+## WHAT'S NEXT?
+
+Day 32: Kubernetes Pods
+- What is a Pod?
+- How to create Pods?
+- Pod vs Container
+- Hands-on practice
+
+---
+
+**Remember: Kubernetes architecture is like a company - Control Plane is management, Workers are employees, API Server is CEO!** 🚀

@@ -1,0 +1,965 @@
+================================================================================
+        DAY 36: KUBERNETES INTERVIEW QUESTIONS - PART 1
+================================================================================
+
+📌 WHAT THIS IS:
+- Mock interview practice
+- Test your understanding from Day 30-35
+- 10 important interview questions with detailed answers
+- Self-assessment exercise
+
+💡 HOW TO USE THIS:
+1. Read each question
+2. Try to answer yourself (pause and think)
+3. Then read the answer
+4. Score yourself (1 point per correct answer)
+5. Comment your score!
+
+⚠️ NOTE: Most questions are from previous classes (Day 30-35)
+
+================================================================================
+            QUESTION 1: DOCKER VS KUBERNETES
+================================================================================
+
+❓ QUESTION:
+What is the difference between Docker and Kubernetes?
+
+⏸️ PAUSE HERE - Try to answer yourself first!
+
+✅ ANSWER:
+
+Docker = Container platform
+Kubernetes = Container orchestration platform
+
+🔹 DETAILED EXPLANATION:
+
+Docker:
+- Runs containers on single machine
+- No auto-healing (if container dies, it's gone)
+- No auto-scaling (manual scaling only)
+- Single node platform
+- Good for development/testing
+
+Kubernetes:
+- Runs containers across multiple machines (cluster)
+- Auto-healing (restarts crashed containers automatically)
+- Auto-scaling (creates more containers based on load)
+- Multi-node cluster platform
+- Production-ready
+
+🔹 WHY MOVE FROM DOCKER TO KUBERNETES?
+
+Problem with Docker:
+- Container crashes → Application down → Users cannot access
+- Single machine fails → Everything down
+- No automatic recovery
+
+Solution with Kubernetes:
+- Container crashes → Auto-healing restarts it
+- Machine fails → Moves containers to another machine
+- Automatic recovery and scaling
+
+🔹 ADDITIONAL KUBERNETES ADVANTAGES:
+
+1. Enterprise capabilities:
+   - Load balancing
+   - Service discovery
+   - Rolling updates
+   - Rollback support
+
+2. Extensibility:
+   - Custom Resource Definitions (CRDs)
+   - Custom controllers
+   - Ingress controllers
+   - Third-party integrations
+
+3. Community support:
+   - CNCF (Cloud Native Computing Foundation)
+   - Large ecosystem
+   - Many tools and plugins
+
+🔹 SIMPLE ANSWER FOR INTERVIEW:
+
+"Docker is a container platform for running containers on a single machine.
+Kubernetes is a container orchestration platform that manages containers
+across multiple machines, providing auto-healing, auto-scaling, load
+balancing, and enterprise-level features that Docker alone cannot provide."
+
+📚 Reference: Day 30 video (30-minute detailed comparison)
+
+================================================================================
+            QUESTION 2: KUBERNETES ARCHITECTURE COMPONENTS
+================================================================================
+
+❓ QUESTION:
+What are the main components of Kubernetes architecture?
+
+⏸️ PAUSE HERE - Try to answer yourself first!
+
+✅ ANSWER:
+
+Kubernetes has TWO main parts:
+1. Control Plane (Master Node)
+2. Data Plane (Worker Nodes)
+
+🔹 CONTROL PLANE COMPONENTS:
+
+1. API SERVER
+   - Handles all API requests
+   - Entry point for kubectl commands
+   - Talks to all other components
+
+2. SCHEDULER
+   - Decides which Pod goes to which Node
+   - Checks Node resources (CPU, memory)
+   - Schedules Pods on available Nodes
+
+3. ETCD
+   - Kubernetes database
+   - Stores all cluster data as objects
+   - Key-value store
+   - Backup and recovery source
+
+4. CONTROLLER MANAGER
+   - Manages default controllers
+   - Examples: ReplicaSet controller, Deployment controller
+   - Ensures desired state = actual state
+
+5. CLOUD CONTROLLER MANAGER
+   - Integrates with cloud providers (AWS, GCP, Azure)
+   - Creates load balancers
+   - Manages cloud-specific resources
+   - Example: When you create LoadBalancer Service, this component
+     talks to AWS to create Elastic Load Balancer
+
+🔹 DATA PLANE COMPONENTS (WORKER NODES):
+
+1. KUBELET
+   - Manages Pods on the Node
+   - Monitors Pod health
+   - Reports Pod status to API Server
+   - Restarts Pods if needed
+
+2. KUBE-PROXY
+   - Handles networking
+   - Updates IP tables
+   - Routes traffic from Service to Pods
+   - Implements load balancing
+
+3. CONTAINER RUNTIME
+   - Runs containers
+   - Examples: Docker, containerd, CRI-O
+   - Not included by default (you must install)
+   - Implements Container Runtime Interface (CRI)
+
+🔹 SIMPLE DIAGRAM:
+
+```
+CONTROL PLANE (Master):
+- API Server (entry point)
+- Scheduler (assigns Pods to Nodes)
+- etcd (database)
+- Controller Manager (maintains state)
+- Cloud Controller Manager (cloud integration)
+
+DATA PLANE (Workers):
+- Kubelet (manages Pods)
+- Kube-proxy (networking)
+- Container Runtime (runs containers)
+```
+
+🔹 INTERVIEW TIP:
+
+Start with: "I can divide Kubernetes into Control Plane and Data Plane..."
+Then explain each component clearly.
+
+📚 Reference: Day 31 video (40-minute architecture deep dive)
+
+================================================================================
+            QUESTION 3: DOCKER SWARM VS KUBERNETES
+================================================================================
+
+❓ QUESTION:
+What are the main differences between Docker Swarm and Kubernetes?
+
+⏸️ PAUSE HERE - Try to answer yourself first!
+
+✅ ANSWER:
+
+🔹 COMPARISON TABLE:
+
+Feature              | Docker Swarm        | Kubernetes
+-------------------- | ------------------- | --------------------
+Ease of use          | Very easy           | Complex
+Installation         | Simple              | Requires setup
+Suitable for         | Small scale         | Large/Enterprise scale
+Scaling              | Limited             | Advanced (auto-scaling)
+Networking           | Basic               | Advanced (Calico, Flannel)
+Community support    | Limited             | Very large (CNCF)
+Extensibility        | Limited             | High (CRDs, controllers)
+Popularity           | Low                 | Very high
+Job opportunities    | Few                 | Many
+
+🔹 WHEN TO USE DOCKER SWARM:
+
+✅ Small applications
+✅ Simple requirements
+✅ Quick setup needed
+✅ Small team
+✅ Learning container orchestration
+
+🔹 WHEN TO USE KUBERNETES:
+
+✅ Large-scale applications
+✅ Enterprise requirements
+✅ Need auto-scaling
+✅ Advanced networking needed
+✅ Production workloads
+✅ Career growth (more jobs!)
+
+🔹 KEY DIFFERENCES:
+
+1. Scale:
+   - Docker Swarm: Small scale (10-50 containers)
+   - Kubernetes: Large scale (1000s of containers)
+
+2. Networking:
+   - Docker Swarm: Basic overlay network
+   - Kubernetes: Advanced (Calico, Flannel, Weave, OVN)
+
+3. Extensibility:
+   - Docker Swarm: Limited customization
+   - Kubernetes: Custom Resource Definitions (extend capabilities)
+
+4. Community:
+   - Docker Swarm: Small community
+   - Kubernetes: CNCF, huge community, many tools
+
+🔹 INTERVIEW ANSWER:
+
+"Docker Swarm is easy to use and suitable for small-scale applications.
+Kubernetes is more complex but suitable for enterprise-scale applications
+with advanced features like auto-scaling, advanced networking, and high
+extensibility. In the market, Kubernetes has more job opportunities and
+is the industry standard for container orchestration."
+
+================================================================================
+            QUESTION 4: DOCKER CONTAINER VS KUBERNETES POD
+================================================================================
+
+❓ QUESTION:
+What is the difference between Docker container and Kubernetes Pod?
+
+⏸️ PAUSE HERE - Try to answer yourself first!
+
+✅ ANSWER:
+
+🔹 SIMPLE DEFINITION:
+
+Container = Running instance of Docker image
+Pod = Wrapper around container(s) with YAML specifications
+
+🔹 KEY DIFFERENCES:
+
+1. Format:
+   - Container: Created using command line
+   - Pod: Created using YAML file
+
+2. Number:
+   - Container: Always 1 container
+   - Pod: Can have 1 or multiple containers
+
+3. Specifications:
+   - Container: Command line arguments (docker run -p 80:80 -v /data:/data)
+   - Pod: YAML file (organized, version-controlled)
+
+🔹 WHY POD EXISTS:
+
+Docker way (messy):
+```bash
+docker run -d --name app -p 80:80 -v /data:/data --network mynet nginx
+```
+
+Kubernetes way (organized):
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: app
+spec:
+  containers:
+  - name: nginx
+    image: nginx
+    ports:
+    - containerPort: 80
+    volumeMounts:
+    - name: data
+      mountPath: /data
+```
+
+Benefits of Pod (YAML):
+✅ Easy to read and understand
+✅ Version control (store in Git)
+✅ Standardized format
+✅ Easy to share with team
+✅ Declarative (say what you want, not how)
+
+🔹 MULTIPLE CONTAINERS IN POD:
+
+Usually: 1 Pod = 1 Container
+
+Sometimes: 1 Pod = Multiple Containers
+
+Why multiple containers?
+- Main app + Helper app (sidecar pattern)
+- Containers need to share files
+- Containers need to talk via localhost
+- Example: App + Logging agent
+
+Advantages when multiple containers in same Pod:
+✅ Share same network (talk via localhost)
+✅ Share same storage (access same files)
+✅ Share same IP address
+
+🔹 INTERVIEW ANSWER:
+
+"A Docker container is a running instance created via command line. A
+Kubernetes Pod is a wrapper around container(s) defined in YAML file.
+Pod provides runtime specifications in organized format. Usually 1 Pod
+has 1 container, but can have multiple containers that need to share
+network and storage (sidecar pattern)."
+
+📚 Reference: Day 33 video (30-minute Pod explanation)
+
+================================================================================
+            QUESTION 5: KUBERNETES NAMESPACE
+================================================================================
+
+❓ QUESTION:
+What is a namespace in Kubernetes?
+
+⏸️ PAUSE HERE - Try to answer yourself first!
+
+✅ ANSWER:
+
+Namespace = Logical isolation of resources in Kubernetes cluster
+
+🔹 SIMPLE EXPLANATION:
+
+Problem:
+- 1 Kubernetes cluster
+- 20 teams working on 20 microservices
+- All teams share same cluster
+- How to separate their work?
+
+Solution: NAMESPACES!
+
+🔹 HOW IT WORKS:
+
+Kubernetes Cluster
+├── Namespace A (Project A - 10 developers)
+│   ├── Deployments
+│   ├── Pods
+│   └── Services
+│
+├── Namespace B (Project B - 10 developers)
+│   ├── Deployments
+│   ├── Pods
+│   └── Services
+│
+└── Namespace C (Project C - 10 developers)
+    ├── Deployments
+    ├── Pods
+    └── Services
+
+🔹 BENEFITS:
+
+1. Logical separation:
+   - Same cluster, different namespaces
+   - Teams don't interfere with each other
+
+2. Resource isolation:
+   - Team A cannot access Team B's resources
+   - Separate Deployments, Pods, Services
+
+3. Access control (RBAC):
+   - Role-Based Access Control
+   - Team A has access only to Namespace A
+   - Team B has access only to Namespace B
+
+4. Resource quotas:
+   - Limit CPU/memory per namespace
+   - Prevent one team from using all resources
+
+🔹 REAL WORLD EXAMPLE:
+
+Amazon.com has 20 microservices:
+- Payment service → Namespace: payment
+- Cart service → Namespace: cart
+- User service → Namespace: user
+- Order service → Namespace: order
+
+All in same cluster, but logically separated!
+
+🔹 DEFAULT NAMESPACES:
+
+Kubernetes creates these by default:
+- default (your apps go here by default)
+- kube-system (Kubernetes system components)
+- kube-public (public resources)
+- kube-node-lease (node heartbeat data)
+
+🔹 INTERVIEW ANSWER:
+
+"Namespace is a logical isolation of resources in Kubernetes cluster.
+It allows multiple teams to work on the same cluster without interfering
+with each other. Each team gets their own namespace with separate
+resources, access control via RBAC, and resource quotas. This enables
+efficient cluster sharing across multiple projects."
+
+================================================================================
+            QUESTION 6: ROLE OF KUBE-PROXY
+================================================================================
+
+❓ QUESTION:
+What is the role of kube-proxy?
+
+⏸️ PAUSE HERE - Try to answer yourself first!
+
+✅ ANSWER:
+
+Kube-proxy = Networking component that handles traffic routing
+
+🔹 SIMPLE EXPLANATION:
+
+Kube-proxy configures network rules on each Node so traffic reaches Pods.
+
+🔹 HOW IT WORKS:
+
+Example: NodePort Service
+
+1. You create Service (type: NodePort)
+2. Service should be accessible at: <node-ip>:30001
+3. But how does traffic reach Pod?
+4. Kube-proxy configures IP tables!
+
+IP Tables = Linux kernel routing rules
+
+Kube-proxy updates IP tables:
+"If traffic comes to Node IP:30001 → Send to Pod IP:80"
+
+🔹 WHAT KUBE-PROXY DOES:
+
+1. Watches API Server for Service changes
+2. Updates IP tables on each Node
+3. Routes traffic from Service to Pods
+4. Implements load balancing (distributes traffic)
+
+🔹 MODES OF KUBE-PROXY:
+
+1. IP tables mode (default):
+   - Uses Linux IP tables
+   - Fast and efficient
+   - Most common
+
+2. IPVS mode:
+   - Uses IP Virtual Server
+   - Better for large clusters
+   - More load balancing algorithms
+
+3. Userspace mode (old):
+   - Deprecated
+   - Not used anymore
+
+🔹 EXAMPLE SCENARIO:
+
+Service: payment-service (NodePort: 30001)
+Pods: 3 replicas (Pod1, Pod2, Pod3)
+
+Kube-proxy configures:
+- Traffic to Node:30001 → Distribute to Pod1, Pod2, Pod3
+- Load balancing: Round-robin (default)
+
+User accesses: http://node-ip:30001
+Kube-proxy routes: → Pod1 (first request)
+                   → Pod2 (second request)
+                   → Pod3 (third request)
+
+🔹 INTERVIEW ANSWER:
+
+"Kube-proxy is a networking component that runs on each Node. It configures
+network rules (IP tables) to route traffic from Services to Pods. When you
+create a Service, kube-proxy updates IP tables so traffic reaching the
+Service is forwarded to the correct Pods. It also implements load balancing
+by distributing traffic across multiple Pod replicas."
+
+📚 Reference: Day 31 (Architecture) and Day 35 (Services)
+
+================================================================================
+            QUESTION 7: TYPES OF KUBERNETES SERVICES
+================================================================================
+
+❓ QUESTION:
+What are the different types of Services in Kubernetes?
+
+⏸️ PAUSE HERE - Try to answer yourself first!
+
+✅ ANSWER:
+
+Three main types:
+1. ClusterIP (default)
+2. NodePort
+3. LoadBalancer
+
+🔹 TYPE 1: CLUSTER IP (DEFAULT)
+
+Access: Inside cluster only
+
+Who can access:
+- Only people who SSH to cluster
+- Only Pods inside cluster
+
+Use case:
+- Internal services (databases)
+- Backend APIs (not public)
+- Inter-Pod communication
+
+Example:
+```yaml
+type: ClusterIP
+```
+
+Access method:
+```bash
+# Must SSH to cluster first
+kubectl exec -it pod-name -- curl http://service-name
+```
+
+🔹 TYPE 2: NODE PORT
+
+Access: Anyone with Node IP access
+
+Who can access:
+- People inside organization/VPC
+- Anyone who can reach Node IPs
+- Employees (not public internet)
+
+Use case:
+- Company internal apps
+- Employee portals
+- Testing before going public
+
+Example:
+```yaml
+type: NodePort
+```
+
+Access method:
+```bash
+# From anywhere that can reach Node
+curl http://<node-ip>:30001
+```
+
+Port range: 30000-32767
+
+🔹 TYPE 3: LOAD BALANCER
+
+Access: Anyone in the world (public)
+
+Who can access:
+- ANYONE with internet
+- Customers worldwide
+- Public users
+
+Use case:
+- Public websites (amazon.com)
+- Customer-facing apps
+- Public APIs
+
+Example:
+```yaml
+type: LoadBalancer
+```
+
+Access method:
+```bash
+# From anywhere in world
+curl http://<public-load-balancer-ip>
+```
+
+⚠️ Requires cloud provider (AWS, GCP, Azure)
+⚠️ Does NOT work on Minikube by default
+
+🔹 COMPARISON TABLE:
+
+Type          | Access Level        | Use Case
+------------- | ------------------- | ---------------------
+ClusterIP     | Cluster only        | Databases, internal
+NodePort      | Organization/VPC    | Company apps
+LoadBalancer  | Public internet     | Customer websites
+
+🔹 INTERVIEW ANSWER:
+
+"Kubernetes has three main Service types: ClusterIP (default, internal
+access only), NodePort (accessible via Node IPs for organization users),
+and LoadBalancer (public access via cloud load balancer). ClusterIP is
+for internal services, NodePort for company apps, and LoadBalancer for
+public-facing applications."
+
+📚 Reference: Day 35 video (detailed Service theory)
+
+================================================================================
+            QUESTION 8: NODEPORT VS LOADBALANCER
+================================================================================
+
+❓ QUESTION:
+What is the difference between NodePort and LoadBalancer type Service?
+
+⏸️ PAUSE HERE - Try to answer yourself first!
+
+✅ ANSWER:
+
+🔹 NODE PORT:
+
+Access: <node-ip>:<port>
+Port range: 30000-32767
+Accessibility: Anyone who can reach Node IPs
+Works on: Any Kubernetes cluster (including Minikube)
+
+Example:
+- Node IP: 192.168.1.10
+- NodePort: 30001
+- Access: http://192.168.1.10:30001
+
+Who can access:
+✅ People inside organization
+✅ People with VPC access
+✅ Employees
+❌ Public internet (unless Nodes are public)
+
+🔹 LOAD BALANCER:
+
+Access: <public-load-balancer-ip>
+Port: Standard (80, 443)
+Accessibility: Anyone in the world
+Works on: Cloud providers only (AWS, GCP, Azure)
+
+Example:
+- Load Balancer IP: 54.123.45.67 (public)
+- Access: http://54.123.45.67
+
+Who can access:
+✅ Anyone with internet
+✅ Customers worldwide
+✅ Public users
+
+🔹 KEY DIFFERENCES:
+
+1. Access method:
+   - NodePort: Node IP + Port (192.168.1.10:30001)
+   - LoadBalancer: Public IP (54.123.45.67)
+
+2. Port:
+   - NodePort: High port (30000-32767)
+   - LoadBalancer: Standard port (80, 443)
+
+3. Accessibility:
+   - NodePort: Organization/VPC only
+   - LoadBalancer: Public internet
+
+4. Cloud requirement:
+   - NodePort: Works anywhere
+   - LoadBalancer: Requires cloud provider
+
+5. Cost:
+   - NodePort: Free
+   - LoadBalancer: Costs money (cloud load balancer)
+
+🔹 WHEN TO USE:
+
+NodePort:
+- Internal company applications
+- Testing before production
+- Development environments
+- Cost-sensitive projects
+
+LoadBalancer:
+- Production public websites
+- Customer-facing applications
+- Need standard ports (80, 443)
+- Professional setup
+
+🔹 INTERVIEW ANSWER:
+
+"NodePort exposes Service on each Node's IP with a high port (30000-32767),
+accessible to anyone who can reach Node IPs (organization users). LoadBalancer
+creates a public cloud load balancer with standard ports, accessible to anyone
+on the internet. NodePort is for internal/company apps, LoadBalancer is for
+public-facing applications. LoadBalancer requires cloud provider and costs
+money, while NodePort works on any cluster for free."
+
+================================================================================
+            QUESTION 9: ROLE OF KUBELET
+================================================================================
+
+❓ QUESTION:
+What is the role of kubelet?
+
+⏸️ PAUSE HERE - Try to answer yourself first!
+
+✅ ANSWER:
+
+Kubelet = Pod manager on each Worker Node
+
+🔹 SIMPLE EXPLANATION:
+
+Kubelet manages Pod lifecycle on the Node.
+
+🔹 WHAT KUBELET DOES:
+
+1. Monitors Pods:
+   - Checks if Pods are running
+   - Checks Pod health
+   - Watches for crashes
+
+2. Reports to API Server:
+   - "Pod is running fine"
+   - "Pod crashed!"
+   - "Pod needs restart"
+
+3. Starts/Stops Pods:
+   - Starts Pods when scheduled to Node
+   - Stops Pods when deleted
+   - Restarts crashed Pods
+
+4. Communicates with Container Runtime:
+   - Tells Docker/containerd to start container
+   - Gets container status
+   - Manages container lifecycle
+
+🔹 EXAMPLE SCENARIO:
+
+1. Scheduler assigns Pod to Node 1
+2. Kubelet on Node 1 receives instruction
+3. Kubelet tells container runtime: "Start this Pod"
+4. Container runtime starts container
+5. Kubelet monitors: "Pod is running"
+6. Kubelet reports to API Server: "Pod healthy"
+
+If Pod crashes:
+1. Kubelet detects: "Pod crashed!"
+2. Kubelet reports to API Server
+3. API Server notifies ReplicaSet controller
+4. ReplicaSet says: "Create new Pod"
+5. Scheduler assigns new Pod to Node
+6. Kubelet starts new Pod
+
+🔹 KUBELET IS NOT:
+
+❌ Not a container runtime (doesn't run containers directly)
+❌ Not a scheduler (doesn't decide which Node)
+❌ Not a controller (doesn't maintain desired state)
+
+Kubelet is:
+✅ Pod manager on Node
+✅ Communication bridge (API Server ↔ Container Runtime)
+✅ Health monitor
+
+🔹 INTERVIEW ANSWER:
+
+"Kubelet is an agent that runs on each Worker Node and manages Pod lifecycle.
+It monitors Pod health, reports status to API Server, starts/stops Pods, and
+communicates with container runtime. When a Pod crashes, kubelet detects it
+and reports to API Server, which triggers auto-healing through ReplicaSet
+controller. Kubelet is responsible for ensuring Pods run correctly on the Node."
+
+📚 Reference: Day 31 (Architecture)
+
+================================================================================
+            QUESTION 10: DAY-TO-DAY ACTIVITIES ON KUBERNETES
+================================================================================
+
+❓ QUESTION:
+What are your day-to-day activities on Kubernetes?
+
+⏸️ PAUSE HERE - Try to answer yourself first!
+
+✅ ANSWER:
+
+This is often the FIRST question in interviews! Answer confidently!
+
+🔹 PERFECT INTERVIEW ANSWER:
+
+"As a DevOps Engineer, my day-to-day activities on Kubernetes include:
+
+1. CLUSTER MANAGEMENT:
+   - Manage Kubernetes clusters for the organization
+   - Monitor cluster health and performance
+   - Ensure high availability of clusters
+
+2. APPLICATION DEPLOYMENT:
+   - Deploy applications to Kubernetes
+   - Create Deployments, Services, ConfigMaps
+   - Ensure applications run without issues
+
+3. TROUBLESHOOTING:
+   - Help developers debug Pod issues
+   - Troubleshoot Service connectivity problems
+   - Fix networking and routing issues
+   - Check logs and events for errors
+
+4. MAINTENANCE ACTIVITIES:
+   - Upgrade Kubernetes versions
+   - Upgrade Node OS and packages
+   - Apply security patches
+   - Ensure Nodes are not exposed to vulnerabilities
+
+5. MONITORING & ALERTING:
+   - Set up monitoring (Prometheus, Grafana)
+   - Configure alerts for cluster issues
+   - Monitor resource usage (CPU, memory)
+   - Respond to alerts and incidents
+
+6. SUBJECT MATTER EXPERT:
+   - Provide Kubernetes expertise to teams
+   - Answer questions from developers
+   - Conduct training sessions
+   - Review and approve Kubernetes configurations
+
+7. TICKET MANAGEMENT:
+   - Handle Jira tickets related to Kubernetes
+   - Resolve issues reported by teams
+   - Document solutions and best practices
+
+8. AUTOMATION:
+   - Write scripts for common tasks
+   - Automate deployments using CI/CD
+   - Create Helm charts for applications
+   - Implement GitOps workflows
+
+9. CAPACITY PLANNING:
+   - Monitor cluster capacity
+   - Add/remove Nodes as needed
+   - Optimize resource allocation
+   - Plan for scaling
+
+10. SECURITY:
+    - Implement RBAC (Role-Based Access Control)
+    - Manage secrets and ConfigMaps
+    - Ensure security best practices
+    - Regular security audits"
+
+🔹 SHORT VERSION (IF INTERVIEWER WANTS BRIEF):
+
+"I manage Kubernetes clusters, deploy applications, troubleshoot issues,
+perform maintenance activities like upgrades and security patches, set up
+monitoring, and serve as Kubernetes subject matter expert for the organization.
+I also handle tickets and help developers resolve Kubernetes-related problems."
+
+🔹 TIPS FOR THIS QUESTION:
+
+✅ Speak confidently (this is usually first question)
+✅ Cover multiple areas (not just one thing)
+✅ Mention both technical and support activities
+✅ Show you're a team player (help developers)
+✅ Mention tools (Prometheus, Grafana, Helm)
+
+❌ Don't say: "I just deploy applications"
+❌ Don't sound unsure or hesitant
+❌ Don't give one-line answer
+
+🔹 FOLLOW-UP QUESTIONS INTERVIEWER MAY ASK:
+
+- How many clusters do you manage?
+  → "We have 3 clusters: Dev, Staging, Production"
+
+- What monitoring tools do you use?
+  → "Prometheus for metrics, Grafana for dashboards, ELK for logs"
+
+- How do you handle upgrades?
+  → "We follow rolling upgrade strategy with zero downtime"
+
+- What's your cluster size?
+  → "3 Master Nodes, 10 Worker Nodes in production"
+
+================================================================================
+                    SCORING & SELF-ASSESSMENT
+================================================================================
+
+📊 HOW MANY DID YOU GET CORRECT?
+
+Score yourself (1 point per question):
+
+0-3 points: Review Day 30-35 videos again
+4-6 points: Good understanding, practice more
+7-8 points: Very good! Ready for interviews
+9-10 points: Excellent! You're interview-ready!
+
+🎯 WHAT TO DO NEXT:
+
+If you scored low:
+- Watch Day 30-35 videos again
+- Take notes while watching
+- Practice explaining concepts out loud
+- Draw diagrams to understand better
+
+If you scored high:
+- Practice explaining to others
+- Write blog posts about concepts
+- Create your own examples
+- Prepare for advanced questions
+
+================================================================================
+                    IMPORTANT NOTES
+================================================================================
+
+📝 INTERVIEW TIPS:
+
+1. Don't memorize answers word-by-word
+2. Understand concepts deeply
+3. Use your own words to explain
+4. Give examples from your experience
+5. Be confident, not hesitant
+6. If you don't know, say "I'll learn and get back"
+
+🎓 TOPICS COVERED IN THESE QUESTIONS:
+
+✅ Day 30: Docker vs Kubernetes
+✅ Day 31: Kubernetes Architecture
+✅ Day 33: Pods
+✅ Day 34: Deployments
+✅ Day 35: Services
+
+📚 WHAT'S COMING NEXT:
+
+Day 37: Kubernetes Services - Practical Demo
+Day 38: Kubernetes Ingress
+Day 39: Helm Charts
+Day 40: More advanced topics
+Day 45: Complete DevOps course finish!
+
+================================================================================
+                    ASSIGNMENT
+================================================================================
+
+📝 YOUR HOMEWORK:
+
+1. Answer all 10 questions OUT LOUD (practice speaking)
+2. Record yourself answering (check your confidence)
+3. Write answers in your own words (don't copy)
+4. Share your score in comments
+5. Post your understanding on LinkedIn
+
+🌟 BONUS:
+
+Create a blog post explaining any 3 questions from this list.
+Share on LinkedIn with #DevOps #Kubernetes tags!
+
+================================================================================
+                            END OF DAY 36
+================================================================================
+
+Remember: These are REAL interview questions! Practice them well!
+Part 2 of interview questions coming soon!
+
+Comment your score below! 👇

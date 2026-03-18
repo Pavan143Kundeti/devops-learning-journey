@@ -1,0 +1,1229 @@
+================================================================================
+        DAY 42: KUBERNETES MONITORING WITH PROMETHEUS AND GRAFANA
+================================================================================
+
+📌 WHAT YOU WILL LEARN TODAY:
+- Why monitoring is required in Kubernetes
+- What is Prometheus and its architecture
+- What is Grafana and why we need it
+- How to install Prometheus using Helm
+- How to install Grafana using Helm
+- Setting up monitoring dashboards
+- Understanding Kube State Metrics
+- How to monitor custom applications
+
+⚠️ PREREQUISITES: 
+- Kubernetes cluster (Minikube, K3s, or any cluster)
+- Helm installed
+- Basic understanding of Kubernetes concepts
+
+📚 GITHUB REPOSITORY: 
+All commands and configurations are documented in a GitHub repository
+for easy reference and future enhancements.
+
+================================================================================
+                    PART 1: WHY MONITORING IS REQUIRED
+================================================================================
+
+🔹 THE PROBLEM WITH SINGLE CLUSTER:
+
+Scenario: You have one Kubernetes cluster
+- As DevOps engineer, you can manually monitor one cluster
+- But what if multiple teams use the same cluster?
+- Team A says: "Deployment not receiving requests"
+- Team B says: "Service not accessible"
+- How do you troubleshoot these issues quickly?
+
+🔹 THE PROBLEM GROWS:
+
+As your infrastructure grows:
+- Development environment cluster
+- Staging environment cluster  
+- Production environment cluster
+- Multiple clusters per environment
+
+Without monitoring:
+❌ No visibility into cluster health
+❌ Cannot identify issues proactively
+❌ Difficult to troubleshoot problems
+❌ No historical data for analysis
+❌ Manual checking is not scalable
+
+🔹 THE SOLUTION: MONITORING
+
+With proper monitoring:
+✅ Real-time visibility into all clusters
+✅ Proactive issue detection
+✅ Historical data and trends
+✅ Automated alerting
+✅ Better troubleshooting capabilities
+✅ Performance optimization insights
+
+================================================================================
+                    PART 2: WHAT IS PROMETHEUS
+================================================================================
+
+🔹 PROMETHEUS OVERVIEW:
+
+Prometheus = Open-source monitoring and alerting system
+
+Key Facts:
+- Originally developed by SoundCloud
+- Now open-source and widely adopted
+- Part of Cloud Native Computing Foundation (CNCF)
+- Industry standard for Kubernetes monitoring
+- Free to use in any environment
+
+🔹 WHY PROMETHEUS FOR KUBERNETES:
+
+✅ **Native Kubernetes Integration:**
+- Kubernetes API server exposes metrics by default
+- Easy to scrape Kubernetes metrics
+- Understands Kubernetes service discovery
+
+✅ **Time Series Database:**
+- Stores metrics with timestamps
+- Efficient storage and querying
+- Historical data analysis
+
+✅ **Powerful Query Language:**
+- PromQL (Prometheus Query Language)
+- Complex queries and aggregations
+- Real-time and historical queries
+
+✅ **Alerting Capabilities:**
+- Built-in alerting rules
+- Integration with Alert Manager
+- Multiple notification channels
+
+================================================================================
+                    PART 3: PROMETHEUS ARCHITECTURE
+================================================================================
+
+🔹 ARCHITECTURE COMPONENTS:
+
+```
+┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
+│   Kubernetes    │    │   Prometheus     │    │   Alert         │
+│   API Server    │───▶│   Server         │───▶│   Manager       │
+│   /metrics      │    │                  │    │                 │
+└─────────────────┘    └──────────────────┘    └─────────────────┘
+                              │                          │
+                              ▼                          ▼
+                       ┌──────────────┐         ┌─────────────────┐
+                       │ Time Series  │         │  Notifications  │
+                       │ Database     │         │  (Slack, Email) │
+                       │ (Disk)       │         │                 │
+                       └──────────────┘         └─────────────────┘
+                              ▲
+                              │
+                       ┌──────────────┐
+                       │   Grafana    │
+                       │  (Queries)   │
+                       └──────────────┘
+```
+
+🔹 HOW IT WORKS:
+
+**Step 1: Data Collection**
+- Prometheus server scrapes metrics from targets
+- Kubernetes API server exposes metrics at `/metrics` endpoint
+- Kube State Metrics provides additional cluster metrics
+
+**Step 2: Data Storage**
+- Metrics stored in time series database
+- Data stored on disk (HDD/SSD)
+- Configurable retention period
+
+**Step 3: Querying**
+- PromQL queries retrieve data
+- Real-time and historical queries
+- API access for external tools
+
+**Step 4: Alerting**
+- Alert rules evaluate metrics
+- Alerts sent to Alert Manager
+- Notifications to various channels (Slack, email, etc.)
+
+🔹 DEFAULT KUBERNETES METRICS:
+
+Out-of-the-box, Kubernetes API server provides:
+- API server performance metrics
+- etcd metrics
+- Controller manager metrics
+- Scheduler metrics
+- Basic node and pod metrics
+
+================================================================================
+                    PART 4: WHAT IS GRAFANA
+================================================================================
+
+🔹 GRAFANA OVERVIEW:
+
+Grafana = Data visualization and dashboarding platform
+
+🔹 WHY GRAFANA WITH PROMETHEUS:
+
+**Problem with Prometheus alone:**
+- Prometheus returns data in JSON/text format
+- Difficult to read large amounts of data
+- Not suitable for management dashboards
+- Limited visualization capabilities
+
+**Solution with Grafana:**
+- Beautiful charts and graphs
+- Interactive dashboards
+- Multiple data source support
+- Easy to understand visualizations
+- Customizable dashboards
+
+🔹 GRAFANA CAPABILITIES:
+
+✅ **Multiple Data Sources:**
+- Prometheus (most common)
+- InfluxDB, MySQL, PostgreSQL
+- AWS CloudWatch, Azure Monitor
+- Elasticsearch, and many more
+
+✅ **Rich Visualizations:**
+- Line charts, bar charts, pie charts
+- Heatmaps, histograms
+- Tables, stat panels
+- Custom panels and plugins
+
+✅ **Dashboard Management:**
+- Import/export dashboards
+- Template variables
+- Dashboard sharing
+- Version control
+
+✅ **Alerting:**
+- Visual alert rules
+- Multiple notification channels
+- Alert history and management
+
+================================================================================
+            PART 5: PRACTICAL SETUP - MINIKUBE CLUSTER
+================================================================================
+
+⚠️ IMPORTANT: We'll use Minikube for this demo because it provides better
+memory and CPU resources compared to Kind for monitoring workloads.
+
+--------------------------------------------------------------------------------
+STEP 1: START MINIKUBE CLUSTER
+--------------------------------------------------------------------------------
+
+🔹 BASIC MINIKUBE START:
+
+```bash
+minikube start
+```
+
+This uses Docker driver by default.
+
+🔹 RECOMMENDED MINIKUBE START (Mac):
+
+```bash
+minikube start --memory=4096 --driver=hyperkit
+```
+
+🔹 RECOMMENDED MINIKUBE START (Windows/Linux):
+
+```bash
+minikube start --memory=4096 --driver=virtualbox
+```
+
+🔹 WHY THESE OPTIONS:
+
+- `--memory=4096`: Allocates 4GB RAM (monitoring needs more memory)
+- `--driver=hyperkit/virtualbox`: Better networking than Docker driver
+- Easier service exposure and ingress configuration
+
+🔹 VERIFY CLUSTER:
+
+```bash
+kubectl get pods -A
+```
+
+You should see default Kubernetes system pods:
+- kube-apiserver
+- kube-controller-manager
+- kube-scheduler
+- etcd
+- coredns
+
+================================================================================
+            PART 6: INSTALLING PROMETHEUS WITH HELM
+================================================================================
+
+🔹 WHY HELM FOR INSTALLATION:
+
+✅ **Advantages of Helm:**
+- Simplified installation process
+- Automatic configuration management
+- Easy upgrades and rollbacks
+- Community-maintained charts
+- Production-ready configurations
+
+✅ **Alternative: Operators**
+- Lifecycle management capabilities
+- Automatic upgrades
+- Advanced configuration options
+- We'll cover operators in future classes
+
+--------------------------------------------------------------------------------
+STEP 1: ADD PROMETHEUS HELM REPOSITORY
+--------------------------------------------------------------------------------
+
+```bash
+# Add Prometheus community Helm repository
+helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+
+# Update Helm repositories (important!)
+helm repo update
+```
+
+🔹 WHY HELM REPO UPDATE:
+
+- Gets latest chart versions
+- Ensures you install current stable release
+- Prevents installing outdated versions
+
+--------------------------------------------------------------------------------
+STEP 2: INSTALL PROMETHEUS
+--------------------------------------------------------------------------------
+
+```bash
+# Install Prometheus using Helm
+helm install prometheus prometheus-community/kube-prometheus-stack
+```
+
+🔹 WHAT THIS INSTALLS:
+
+- Prometheus server
+- Alert Manager
+- Kube State Metrics
+- Node Exporter
+- Grafana (included in stack)
+- Default monitoring rules
+
+🔹 VERIFY INSTALLATION:
+
+```bash
+# Check pods are running
+kubectl get pods
+
+# Check services created
+kubectl get svc
+```
+
+Expected pods:
+- prometheus-server
+- prometheus-kube-state-metrics
+- prometheus-alertmanager
+- prometheus-node-exporter
+
+🔹 INSTALLATION NOTES:
+
+After installation, Helm shows important information:
+- How to access Prometheus server
+- Port forwarding commands
+- Configuration details
+
+Always read this information!
+
+================================================================================
+            PART 7: ACCESSING PROMETHEUS UI
+================================================================================
+
+--------------------------------------------------------------------------------
+STEP 1: EXPOSE PROMETHEUS SERVICE
+--------------------------------------------------------------------------------
+
+🔹 CHECK CURRENT SERVICES:
+
+```bash
+kubectl get svc
+```
+
+You'll see `prometheus-server` with ClusterIP type.
+
+🔹 EXPOSE AS NODEPORT:
+
+```bash
+kubectl expose service prometheus-server \
+  --type=NodePort \
+  --target-port=9090 \
+  --name=prometheus-server-ext
+```
+
+🔹 GET NODEPORT:
+
+```bash
+kubectl get svc prometheus-server-ext
+```
+
+Note the NodePort (e.g., 31110).
+
+🔹 GET MINIKUBE IP:
+
+```bash
+minikube ip
+```
+
+Note the IP address (e.g., 192.168.64.15).
+
+--------------------------------------------------------------------------------
+STEP 2: ACCESS PROMETHEUS UI
+--------------------------------------------------------------------------------
+
+🔹 OPEN IN BROWSER:
+
+```
+http://<minikube-ip>:<nodeport>
+```
+
+Example: `http://192.168.64.15:31110`
+
+🔹 PROMETHEUS UI FEATURES:
+
+- **Graph tab**: Execute PromQL queries
+- **Alerts tab**: View active alerts
+- **Status tab**: Configuration and targets
+- **Targets tab**: Scraping endpoints
+
+🔹 TRY SAMPLE QUERIES:
+
+```promql
+# Check if Kubernetes API server is up
+up{job="kubernetes-apiservers"}
+
+# Get node CPU usage
+node_cpu_seconds_total
+
+# Check pod count
+kube_pod_info
+```
+
+================================================================================
+            PART 8: UNDERSTANDING KUBE STATE METRICS
+================================================================================
+
+🔹 WHAT IS KUBE STATE METRICS:
+
+Kube State Metrics = Additional metrics beyond default Kubernetes API server
+
+🔹 DEFAULT KUBERNETES METRICS (Limited):
+
+Kubernetes API server provides:
+- API server performance
+- Basic node information
+- etcd metrics
+- Controller metrics
+
+🔹 KUBE STATE METRICS (Extended):
+
+Provides detailed information about:
+- All deployments and their replica status
+- All pods and their states
+- All services and endpoints
+- ConfigMaps and Secrets count
+- Persistent volumes status
+- Ingress status
+- Much more cluster state information
+
+🔹 WHY KUBE STATE METRICS IS IMPORTANT:
+
+**Without Kube State Metrics:**
+- Limited visibility into workload status
+- Cannot monitor deployment replica counts
+- No service endpoint information
+- Missing pod phase information
+
+**With Kube State Metrics:**
+- Complete cluster state visibility
+- Monitor all Kubernetes resources
+- Track resource relationships
+- Detailed status information
+
+--------------------------------------------------------------------------------
+ACCESSING KUBE STATE METRICS
+--------------------------------------------------------------------------------
+
+🔹 EXPOSE KUBE STATE METRICS:
+
+```bash
+kubectl expose service prometheus-kube-state-metrics \
+  --type=NodePort \
+  --target-port=8080 \
+  --name=kube-state-metrics-ext
+```
+
+🔹 GET SERVICE DETAILS:
+
+```bash
+kubectl get svc kube-state-metrics-ext
+```
+
+Note the NodePort (e.g., 30421).
+
+🔹 ACCESS METRICS ENDPOINT:
+
+```
+http://<minikube-ip>:<nodeport>/metrics
+```
+
+Example: `http://192.168.64.15:30421/metrics`
+
+🔹 SAMPLE METRICS YOU'LL SEE:
+
+```
+# Deployment status
+kube_deployment_status_replicas{deployment="my-app"} 3
+
+# Pod status
+kube_pod_status_phase{pod="my-pod",phase="Running"} 1
+
+# Service information
+kube_service_info{service="my-service"} 1
+```
+
+This is raw metrics data that Prometheus scrapes!
+================================================================================
+            PART 9: INSTALLING AND CONFIGURING GRAFANA
+================================================================================
+
+--------------------------------------------------------------------------------
+STEP 1: ADD GRAFANA HELM REPOSITORY
+--------------------------------------------------------------------------------
+
+```bash
+# Add Grafana Helm repository
+helm repo add grafana https://grafana.github.io/helm-charts
+
+# Update Helm repositories
+helm repo update
+```
+
+--------------------------------------------------------------------------------
+STEP 2: INSTALL GRAFANA
+--------------------------------------------------------------------------------
+
+```bash
+# Install Grafana using Helm
+helm install grafana grafana/grafana
+```
+
+🔹 IMPORTANT: GET ADMIN PASSWORD
+
+After installation, Helm shows how to get the admin password:
+
+```bash
+kubectl get secret --namespace default grafana -o jsonpath="{.data.admin-password}" | base64 --decode ; echo
+```
+
+**SAVE THIS PASSWORD!** You'll need it to login to Grafana.
+
+🔹 VERIFY INSTALLATION:
+
+```bash
+kubectl get pods
+kubectl get svc
+```
+
+You should see `grafana` pod running and `grafana` service created.
+
+--------------------------------------------------------------------------------
+STEP 3: EXPOSE GRAFANA SERVICE
+--------------------------------------------------------------------------------
+
+🔹 EXPOSE AS NODEPORT:
+
+```bash
+kubectl expose service grafana \
+  --type=NodePort \
+  --target-port=3000 \
+  --name=grafana-ext
+```
+
+🔹 GET ACCESS DETAILS:
+
+```bash
+kubectl get svc grafana-ext
+minikube ip
+```
+
+🔹 ACCESS GRAFANA:
+
+Open browser: `http://<minikube-ip>:<nodeport>`
+
+Example: `http://192.168.64.15:31281`
+
+🔹 LOGIN CREDENTIALS:
+
+- Username: `admin`
+- Password: (from the kubectl command above)
+
+================================================================================
+            PART 10: CONFIGURING PROMETHEUS AS DATA SOURCE
+================================================================================
+
+--------------------------------------------------------------------------------
+STEP 1: ADD PROMETHEUS DATA SOURCE
+--------------------------------------------------------------------------------
+
+🔹 IN GRAFANA UI:
+
+1. Click on "Configuration" (gear icon) → "Data Sources"
+2. Click "Add your first data source"
+3. Select "Prometheus"
+
+🔹 CONFIGURE PROMETHEUS URL:
+
+In the URL field, enter your Prometheus server URL:
+```
+http://<minikube-ip>:<prometheus-nodeport>
+```
+
+Example: `http://192.168.64.15:31110`
+
+🔹 TEST CONNECTION:
+
+1. Click "Save & Test"
+2. You should see: "Data source is working"
+
+This confirms Grafana can connect to Prometheus!
+
+================================================================================
+            PART 11: IMPORTING KUBERNETES DASHBOARD
+================================================================================
+
+🔹 WHY IMPORT DASHBOARDS:
+
+Instead of creating dashboards from scratch:
+- Use community-created dashboards
+- Pre-configured PromQL queries
+- Professional visualizations
+- Save time and effort
+
+--------------------------------------------------------------------------------
+STEP 1: IMPORT KUBERNETES DASHBOARD
+--------------------------------------------------------------------------------
+
+🔹 IN GRAFANA UI:
+
+1. Click "+" (Create) → "Import"
+2. Enter dashboard ID: `3662`
+3. Click "Load"
+
+🔹 CONFIGURE IMPORT:
+
+1. Select Prometheus data source
+2. Click "Import"
+
+🔹 DASHBOARD ID 3662:
+
+This is a popular Kubernetes cluster monitoring dashboard that provides:
+- Kubernetes API server metrics
+- Node status and uptime
+- Pod and container metrics
+- Resource utilization
+- Cluster health overview
+
+--------------------------------------------------------------------------------
+STEP 2: EXPLORE THE DASHBOARD
+--------------------------------------------------------------------------------
+
+🔹 DASHBOARD SECTIONS:
+
+**Kubernetes API Server:**
+- Request rate and latency
+- Error rates
+- API server availability
+
+**Kubernetes Nodes:**
+- Node uptime and status
+- CPU and memory usage
+- Disk utilization
+- Network metrics
+
+**Pods and Containers:**
+- Pod status and phases
+- Container resource usage
+- Restart counts
+
+🔹 INTERACTIVE FEATURES:
+
+- **Time Range Selector**: View different time periods
+- **Refresh Rate**: Auto-refresh dashboards
+- **Drill Down**: Click on metrics for details
+- **Hover Information**: See exact values and queries
+
+🔹 UNDERSTANDING THE QUERIES:
+
+Hover over any panel to see the PromQL query used:
+
+Example queries you might see:
+```promql
+# Node uptime
+up{job="kubernetes-nodes"}
+
+# API server request rate
+rate(apiserver_request_total[5m])
+
+# Pod memory usage
+container_memory_usage_bytes{container!="POD"}
+```
+
+================================================================================
+            PART 12: ADVANCED MONITORING WITH CUSTOM METRICS
+================================================================================
+
+🔹 MONITORING CUSTOM APPLICATIONS:
+
+The default setup monitors Kubernetes infrastructure, but what about your applications?
+
+**For Application Monitoring:**
+- Applications must expose metrics endpoint
+- Usually at `/metrics` path
+- Use Prometheus client libraries
+- Configure Prometheus to scrape application metrics
+
+🔹 PROMETHEUS CLIENT LIBRARIES:
+
+Available for many languages:
+- **Go**: `github.com/prometheus/client_golang`
+- **Python**: `prometheus_client`
+- **Java**: `io.prometheus:simpleclient`
+- **Node.js**: `prom-client`
+- **C#**: `prometheus-net`
+
+🔹 EXAMPLE: PYTHON APPLICATION METRICS
+
+```python
+from prometheus_client import Counter, Histogram, generate_latest
+from flask import Flask, Response
+
+app = Flask(__name__)
+
+# Define metrics
+REQUEST_COUNT = Counter('app_requests_total', 'Total requests')
+REQUEST_LATENCY = Histogram('app_request_duration_seconds', 'Request latency')
+
+@app.route('/metrics')
+def metrics():
+    return Response(generate_latest(), mimetype='text/plain')
+
+@app.route('/')
+@REQUEST_LATENCY.time()
+def hello():
+    REQUEST_COUNT.inc()
+    return "Hello World!"
+```
+
+🔹 CONFIGURING PROMETHEUS TO SCRAPE CUSTOM APPS:
+
+Edit Prometheus configuration:
+
+```bash
+kubectl edit configmap prometheus-server
+```
+
+Add new scrape job:
+```yaml
+scrape_configs:
+- job_name: 'my-application'
+  static_configs:
+  - targets: ['<app-service>:<port>']
+```
+
+================================================================================
+            PART 13: CONFIGURING CUSTOM SCRAPE TARGETS
+================================================================================
+
+--------------------------------------------------------------------------------
+STEP 1: EDIT PROMETHEUS CONFIGURATION
+--------------------------------------------------------------------------------
+
+🔹 ACCESS PROMETHEUS CONFIG:
+
+```bash
+kubectl get configmap
+kubectl edit configmap prometheus-server
+```
+
+🔹 CURRENT CONFIGURATION:
+
+You'll see existing scrape_configs:
+```yaml
+scrape_configs:
+- job_name: 'prometheus'
+  static_configs:
+  - targets: ['localhost:9090']
+```
+
+🔹 ADD KUBE STATE METRICS:
+
+Add new job for Kube State Metrics:
+```yaml
+scrape_configs:
+- job_name: 'prometheus'
+  static_configs:
+  - targets: ['localhost:9090']
+
+- job_name: 'kube-state-metrics'
+  static_configs:
+  - targets: ['<minikube-ip>:30421']
+```
+
+Replace `<minikube-ip>` with your actual Minikube IP.
+
+🔹 RESTART PROMETHEUS:
+
+```bash
+kubectl rollout restart deployment prometheus-server
+```
+
+This reloads the configuration.
+
+--------------------------------------------------------------------------------
+STEP 2: VERIFY NEW METRICS
+--------------------------------------------------------------------------------
+
+🔹 CHECK PROMETHEUS TARGETS:
+
+1. Go to Prometheus UI
+2. Click "Status" → "Targets"
+3. Verify new targets are being scraped
+
+🔹 TEST NEW QUERIES:
+
+Try queries that use Kube State Metrics:
+```promql
+# Deployment replica status
+kube_deployment_status_replicas
+
+# Pod status by phase
+kube_pod_status_phase
+
+# Service endpoints
+kube_service_info
+```
+
+================================================================================
+            PART 14: PRODUCTION CONSIDERATIONS
+================================================================================
+
+🔹 STORAGE CONSIDERATIONS:
+
+**Default Setup (Demo):**
+- Uses local storage
+- Data lost when pods restart
+- Not suitable for production
+
+**Production Setup:**
+- Use Persistent Volumes
+- Configure retention policies
+- Plan for storage growth
+- Consider remote storage options
+
+🔹 RESOURCE REQUIREMENTS:
+
+**Minimum Resources:**
+- Prometheus: 2 CPU, 4GB RAM
+- Grafana: 1 CPU, 2GB RAM
+- Kube State Metrics: 0.5 CPU, 1GB RAM
+
+**Production Resources:**
+- Scale based on cluster size
+- Monitor Prometheus memory usage
+- Configure resource limits
+
+🔹 HIGH AVAILABILITY:
+
+**For Production:**
+- Run multiple Prometheus replicas
+- Use Prometheus federation
+- Configure Grafana clustering
+- Implement backup strategies
+
+🔹 SECURITY CONSIDERATIONS:
+
+**Authentication:**
+- Enable Grafana authentication
+- Configure RBAC for Prometheus
+- Use TLS for communications
+- Secure metrics endpoints
+
+**Network Security:**
+- Use Ingress with TLS
+- Implement network policies
+- Restrict access to monitoring namespace
+
+================================================================================
+            PART 15: TROUBLESHOOTING COMMON ISSUES
+================================================================================
+
+🔹 PROMETHEUS NOT SCRAPING TARGETS:
+
+**Check Target Status:**
+1. Go to Prometheus UI → Status → Targets
+2. Look for targets in "DOWN" state
+3. Check error messages
+
+**Common Issues:**
+- Incorrect target URL
+- Network connectivity problems
+- Authentication issues
+- Target not exposing metrics
+
+**Solutions:**
+```bash
+# Test connectivity
+kubectl exec -it prometheus-server-pod -- wget -O- http://target:port/metrics
+
+# Check service endpoints
+kubectl get endpoints
+
+# Verify service discovery
+kubectl get servicemonitor
+```
+
+🔹 GRAFANA DASHBOARD NOT SHOWING DATA:
+
+**Check Data Source:**
+1. Go to Configuration → Data Sources
+2. Test Prometheus connection
+3. Verify URL is correct
+
+**Check Queries:**
+1. Go to Explore tab in Grafana
+2. Test PromQL queries manually
+3. Check time range settings
+
+**Common Issues:**
+- Wrong Prometheus URL
+- Time range too narrow
+- Metrics not available
+- Query syntax errors
+
+🔹 HIGH MEMORY USAGE:
+
+**Prometheus Memory Issues:**
+- Reduce retention period
+- Decrease scrape frequency
+- Limit number of metrics
+- Add resource limits
+
+**Configuration Example:**
+```yaml
+# Reduce retention
+--storage.tsdb.retention.time=7d
+
+# Reduce scrape interval
+scrape_interval: 30s
+```
+
+🔹 MISSING METRICS:
+
+**Check Metric Names:**
+```bash
+# List all available metrics
+curl http://prometheus:9090/api/v1/label/__name__/values
+```
+
+**Verify Scrape Configuration:**
+```bash
+kubectl edit configmap prometheus-server
+```
+
+**Check Target Health:**
+```bash
+curl http://target:port/metrics
+```
+
+================================================================================
+            PART 16: KUBECTL MONITORING COMMANDS
+================================================================================
+
+🔹 USEFUL MONITORING COMMANDS:
+
+```bash
+# Check all monitoring pods
+kubectl get pods -l app.kubernetes.io/name=prometheus
+
+# Check Prometheus configuration
+kubectl get configmap prometheus-server -o yaml
+
+# View Prometheus logs
+kubectl logs deployment/prometheus-server
+
+# Check Grafana logs
+kubectl logs deployment/grafana
+
+# Port forward to services (alternative to NodePort)
+kubectl port-forward svc/prometheus-server 9090:80
+kubectl port-forward svc/grafana 3000:80
+
+# Check resource usage
+kubectl top pods
+kubectl top nodes
+
+# Monitor pod events
+kubectl get events --sort-by=.metadata.creationTimestamp
+
+# Check service endpoints
+kubectl get endpoints prometheus-server
+kubectl get endpoints grafana
+```
+
+🔹 DEBUGGING COMMANDS:
+
+```bash
+# Test metric endpoints
+kubectl exec -it prometheus-server-pod -- wget -O- http://kube-state-metrics:8080/metrics
+
+# Check DNS resolution
+kubectl exec -it prometheus-server-pod -- nslookup kube-state-metrics
+
+# Verify service discovery
+kubectl get servicemonitor -A
+kubectl get podmonitor -A
+
+# Check RBAC permissions
+kubectl auth can-i get pods --as=system:serviceaccount:default:prometheus-server
+```
+
+================================================================================
+            PART 17: INTERVIEW QUESTIONS
+================================================================================
+
+❓ **Q1: What is the difference between Prometheus and Grafana?**
+
+A: Prometheus is a monitoring system that collects and stores metrics in a time series database, while Grafana is a visualization platform that creates dashboards and charts. Prometheus focuses on data collection and alerting, Grafana focuses on data presentation and visualization.
+
+❓ **Q2: How does Prometheus collect metrics from Kubernetes?**
+
+A: Prometheus uses a pull-based model where it scrapes metrics from HTTP endpoints. Kubernetes API server exposes metrics at `/metrics` endpoint, and Prometheus is configured to scrape these endpoints at regular intervals.
+
+❓ **Q3: What is Kube State Metrics and why is it important?**
+
+A: Kube State Metrics is a service that generates metrics about Kubernetes objects like deployments, pods, and services. It provides additional metrics beyond what the Kubernetes API server offers, giving detailed visibility into cluster state and resource status.
+
+❓ **Q4: How do you monitor custom applications in Kubernetes?**
+
+A: Applications must expose metrics at a `/metrics` endpoint using Prometheus client libraries. Then configure Prometheus to scrape these endpoints by adding new jobs to the scrape_configs in Prometheus configuration.
+
+❓ **Q5: What are the key components of Prometheus architecture?**
+
+A: Key components include: Prometheus Server (data collection and storage), Time Series Database (metric storage), Alert Manager (alerting), and various exporters (metric collection from different systems).
+
+❓ **Q6: How do you troubleshoot Prometheus not collecting metrics?**
+
+A: Check target status in Prometheus UI, verify network connectivity, ensure metrics endpoints are accessible, check scrape configuration, and verify RBAC permissions for service discovery.
+
+================================================================================
+            PART 18: BEST PRACTICES
+================================================================================
+
+🔹 METRIC NAMING:
+
+✅ **Good Practices:**
+- Use descriptive metric names
+- Follow Prometheus naming conventions
+- Include units in metric names
+- Use consistent labeling
+
+Example:
+```promql
+# Good
+http_requests_total{method="GET", status="200"}
+http_request_duration_seconds{method="GET"}
+
+# Bad  
+requests
+duration
+```
+
+🔹 DASHBOARD DESIGN:
+
+✅ **Effective Dashboards:**
+- Group related metrics together
+- Use appropriate visualization types
+- Include time range selectors
+- Add meaningful titles and descriptions
+- Use template variables for flexibility
+
+❌ **Avoid:**
+- Too many metrics on one dashboard
+- Unclear chart titles
+- Missing units on axes
+- Overly complex queries
+
+🔹 ALERTING BEST PRACTICES:
+
+✅ **Good Alerting:**
+- Alert on symptoms, not causes
+- Use appropriate thresholds
+- Include runbook links
+- Test alert rules regularly
+- Avoid alert fatigue
+
+Example Alert Rule:
+```yaml
+- alert: HighErrorRate
+  expr: rate(http_requests_total{status=~"5.."}[5m]) > 0.1
+  for: 5m
+  annotations:
+    summary: "High error rate detected"
+    runbook_url: "https://wiki.company.com/runbooks/high-error-rate"
+```
+
+🔹 RESOURCE MANAGEMENT:
+
+✅ **Production Setup:**
+- Set resource limits and requests
+- Use persistent storage
+- Configure retention policies
+- Monitor Prometheus itself
+- Plan for scaling
+
+```yaml
+resources:
+  requests:
+    memory: "2Gi"
+    cpu: "1"
+  limits:
+    memory: "4Gi"
+    cpu: "2"
+```
+
+================================================================================
+            PART 19: NEXT STEPS AND ADVANCED TOPICS
+================================================================================
+
+🔹 ADVANCED MONITORING TOPICS:
+
+**Coming in Future Classes:**
+- Writing custom metric servers
+- Prometheus Operators
+- Advanced PromQL queries
+- Custom alerting rules
+- Multi-cluster monitoring
+- Long-term storage solutions
+
+🔹 PRODUCTION ENHANCEMENTS:
+
+**High Availability:**
+- Prometheus federation
+- Grafana clustering
+- Alert Manager clustering
+- Backup and disaster recovery
+
+**Security:**
+- TLS encryption
+- Authentication and authorization
+- Network policies
+- Secret management
+
+**Performance:**
+- Query optimization
+- Storage tuning
+- Resource scaling
+- Metric cardinality management
+
+🔹 INTEGRATION OPTIONS:
+
+**Cloud Providers:**
+- AWS CloudWatch integration
+- Azure Monitor integration
+- Google Cloud Monitoring
+- Managed Prometheus services
+
+**Other Tools:**
+- Jaeger for distributed tracing
+- Fluentd for log aggregation
+- Istio service mesh monitoring
+- ArgoCD deployment monitoring
+
+================================================================================
+            PART 20: KEY TAKEAWAYS
+================================================================================
+
+✅ **Monitoring is Essential:**
+- Required for multi-cluster environments
+- Enables proactive issue detection
+- Provides historical data and trends
+- Essential for production operations
+
+✅ **Prometheus + Grafana Stack:**
+- Prometheus: Data collection and storage
+- Grafana: Visualization and dashboards
+- Kube State Metrics: Extended Kubernetes metrics
+- Alert Manager: Notification management
+
+✅ **Installation with Helm:**
+- Simplified deployment process
+- Community-maintained charts
+- Production-ready configurations
+- Easy upgrades and management
+
+✅ **Custom Application Monitoring:**
+- Applications must expose metrics
+- Use Prometheus client libraries
+- Configure scrape targets
+- Follow naming conventions
+
+✅ **Production Considerations:**
+- Resource planning and limits
+- Persistent storage configuration
+- High availability setup
+- Security and authentication
+
+================================================================================
+            PART 21: PRACTICE ASSIGNMENTS
+================================================================================
+
+📝 **Assignment 1: Basic Setup**
+1. Set up Minikube cluster with 4GB memory
+2. Install Prometheus using Helm
+3. Install Grafana using Helm
+4. Configure Prometheus as Grafana data source
+5. Import dashboard ID 3662
+
+📝 **Assignment 2: Custom Metrics**
+1. Deploy a sample application
+2. Expose Kube State Metrics
+3. Add Kube State Metrics to Prometheus scrape config
+4. Create custom queries for deployment status
+5. Build a custom Grafana dashboard
+
+📝 **Assignment 3: Troubleshooting**
+1. Intentionally break a scrape target
+2. Identify the issue using Prometheus UI
+3. Fix the configuration
+4. Verify metrics are being collected
+5. Document the troubleshooting process
+
+📝 **Assignment 4: Production Planning**
+1. Calculate resource requirements for your cluster size
+2. Design a high availability setup
+3. Plan storage requirements and retention
+4. Create a backup strategy
+5. Document security considerations
+
+================================================================================
+                            END OF DAY 42
+================================================================================
+
+Remember: Monitoring is not optional in production Kubernetes environments!
+Master Prometheus and Grafana to build observable, reliable systems.
+
+📚 **Additional Resources:**
+- Prometheus documentation: https://prometheus.io/docs/
+- Grafana documentation: https://grafana.com/docs/
+- PromQL tutorial: https://prometheus.io/docs/prometheus/latest/querying/
+- Kubernetes monitoring guide: https://kubernetes.io/docs/tasks/debug-application-cluster/resource-usage-monitoring/
+
+🎯 **Next Class Preview:**
+Day 43: Advanced Kubernetes Topics - Operators, Custom Controllers, and Production Best Practices
