@@ -1,0 +1,766 @@
+# Day 27: Docker Volumes & Bind Mounts - Complete Practical Guide
+
+## SETUP: WHERE TO RUN THESE COMMANDS
+
+### Option 1: AWS EC2 Instance (Recommended for Learning)
+
+```bash
+# 1. Launch EC2 Instance
+- Go to AWS Console
+- Launch Ubuntu 22.04 instance
+- Instance type: t2.micro (free tier)
+- Security group: Allow SSH (port 22)
+- Download key pair
+
+# 2. Connect to EC2
+ssh -i your-key.pem ubuntu@your-ec2-ip
+
+# 3. Install Docker on EC2
+sudo apt update
+sudo apt install docker.io -y
+sudo usermod -aG docker ubuntu
+
+# 4. Logout and login again
+exit
+ssh -i your-key.pem ubuntu@your-ec2-ip
+
+# 5. Verify Docker is working
+docker --version
+docker ps
+```
+
+### Option 2: Your Local Computer
+
+If Docker is already installed, open terminal and run commands directly.
+
+---
+
+## THE PROBLEM
+
+When container stops → ALL data inside is DELETED!
+
+Example:
+```
+Container running → Saves 100 files → Container crashes → All 100 files GONE!
+```
+
+---
+
+## TWO SOLUTIONS
+
+1. **Bind Mounts** - Link your computer's folder to container
+2. **Volumes** - Docker manages storage (BETTER for production)
+
+---
+
+## PART 1: BIND MOUNTS
+
+### What is Bind Mount?
+
+Your computer has a folder. Container has a folder. Connect them!
+
+```
+Your Computer              Container
+/home/ubuntu/data    ←→    /app
+
+Write in /app → Appears in /home/ubuntu/data
+```
+
+### Command Breakdown
+
+```bash
+docker run -v /home/ubuntu/data:/app nginx
+```
+
+**What each part means:**
+- `docker run` = Start a new container
+- `-v` = Volume/bind mount flag
+- `/home/ubuntu/data` = Folder on YOUR computer
+- `:` = Separator
+- `/app` = Folder INSIDE container
+- `nginx` = Which image to use
+
+**What happens:**
+1. Docker starts nginx container
+2. Links `/home/ubuntu/data` (your computer) to `/app` (container)
+3. Any file in `/app` appears in `/home/ubuntu/data`
+4. Any file in `/home/ubuntu/data` appears in `/app`
+
+---
+
+## PRACTICAL EXAMPLE 1: BIND MOUNTS
+
+### Scenario: Save Nginx Logs on Your Computer
+
+**Step 1: Connect to EC2 (or open terminal)**
+```bash
+ssh -i your-key.pem ubuntu@your-ec2-ip
+```
+
+**Step 2: Create folder on your computer**
+```bash
+mkdir /home/ubuntu/nginx-logs
+```
+
+**What this does:** Creates empty folder called "nginx-logs"
+
+**Step 3: Run nginx with bind mount**
+```bash
+docker run -d \
+  --name my-nginx \
+  -v /home/ubuntu/nginx-logs:/var/log/nginx \
+  -p 8080:80 \
+  nginx
+```
+
+**Breaking down each line:**
+- `docker run` = Start container
+- `-d` = Run in background (detached mode)
+- `--name my-nginx` = Give container a name "my-nginx"
+- `-v /home/ubuntu/nginx-logs:/var/log/nginx` = Connect folders
+  - `/home/ubuntu/nginx-logs` = Your computer
+  - `/var/log/nginx` = Inside container (where nginx saves logs)
+- `-p 8080:80` = Map port 8080 (your computer) to port 80 (container)
+- `nginx` = Use nginx image
+
+**What happens:**
+1. Docker downloads nginx image (if not present)
+2. Starts nginx container
+3. Nginx runs on port 80 inside container
+4. You access it on port 8080 on your computer
+5. Nginx logs go to `/var/log/nginx` inside container
+6. These logs ALSO appear in `/home/ubuntu/nginx-logs` on your computer
+
+**Step 4: Generate some logs**
+```bash
+curl http://localhost:8080
+curl http://localhost:8080
+curl http://localhost:8080
+```
+
+**What this does:** Visits nginx 3 times, creating log entries
+
+**Step 5: Check logs on YOUR COMPUTER (not container!)**
+```bash
+ls /home/ubuntu/nginx-logs
+```
+
+**Output:**
+```
+access.log  error.log
+```
+
+**Step 6: Read the logs**
+```bash
+cat /home/ubuntu/nginx-logs/access.log
+```
+
+You'll see log entries with timestamps and IPs!
+
+**Step 7: Kill the container**
+```bash
+docker stop my-nginx
+docker rm my-nginx
+```
+
+**What this does:**
+- `docker stop` = Stop the container
+- `docker rm` = Delete the container
+
+**Step 8: Check if logs still exist**
+```bash
+ls /home/ubuntu/nginx-logs
+cat /home/ubuntu/nginx-logs/access.log
+```
+
+🎉 **LOGS ARE STILL THERE!** Container is gone but data is safe!
+
+---
+
+## PRACTICAL EXAMPLE 2: EDIT FILES INSTANTLY
+
+### Scenario: Edit Website Without Entering Container
+
+**Step 1: Create website folder**
+```bash
+mkdir /home/ubuntu/mywebsite
+cd /home/ubuntu/mywebsite
+```
+
+**Step 2: Create HTML file**
+```bash
+echo "<h1>Hello World</h1>" > index.html
+```
+
+**What this does:** Creates file with "Hello World" text
+
+**Step 3: Run nginx with bind mount**
+```bash
+docker run -d \
+  --name web \
+  -v /home/ubuntu/mywebsite:/usr/share/nginx/html \
+  -p 8080:80 \
+  nginx
+```
+
+**What happens:**
+- Links `/home/ubuntu/mywebsite` to `/usr/share/nginx/html`
+- Nginx serves files from `/usr/share/nginx/html`
+- So nginx serves YOUR files from `/home/ubuntu/mywebsite`
+
+**Step 4: Visit website**
+```bash
+curl http://localhost:8080
+```
+
+**Output:** `<h1>Hello World</h1>`
+
+**Step 5: Edit file on YOUR COMPUTER**
+```bash
+echo '<h1>Updated Content!</h1>' > /home/ubuntu/mywebsite/index.html
+```
+
+**Step 6: Visit website again (NO RESTART NEEDED!)**
+```bash
+curl http://localhost:8080
+```
+
+**Output:** `<h1>Updated Content!</h1>`
+
+🎉 **Changes appear INSTANTLY!** No need to restart container!
+
+**When to use Bind Mounts:**
+- Development (editing code)
+- Need to see/edit files easily
+- Testing locally
+
+---
+
+## PART 2: VOLUMES (RECOMMENDED FOR PRODUCTION)
+
+### What is Volume?
+
+Docker creates and manages storage for you. Like a USB drive Docker controls.
+
+```
+Volume (mydata) ← Docker manages this
+     |
+     +→ Container 1
+     +→ Container 2
+     +→ Container 3
+```
+
+### Why Volumes are Better
+
+| Feature | Bind Mounts | Volumes |
+|---------|-------------|---------|
+| Docker manages | ❌ No | ✅ Yes |
+| Easy to backup | ❌ No | ✅ Yes |
+| Works on any computer | ❌ No | ✅ Yes |
+| Can use cloud storage | ❌ No | ✅ Yes |
+| More secure | ❌ No | ✅ Yes |
+
+---
+
+## VOLUME COMMANDS EXPLAINED
+
+### Command 1: Create Volume
+
+```bash
+docker volume create mydata
+```
+
+**What it does:**
+- Creates storage space called "mydata"
+- Docker decides where to store it
+- You don't need to know the path
+
+**Output:** `mydata`
+
+### Command 2: List All Volumes
+
+```bash
+docker volume ls
+```
+
+**What it does:** Shows all volumes on your system
+
+**Output:**
+```
+DRIVER    VOLUME NAME
+local     mydata
+local     nginx-logs
+```
+
+### Command 3: See Volume Details
+
+```bash
+docker volume inspect mydata
+```
+
+**What it does:** Shows detailed information about volume
+
+**Output:**
+```json
+[
+    {
+        "CreatedAt": "2024-03-14T10:30:00Z",
+        "Driver": "local",
+        "Mountpoint": "/var/lib/docker/volumes/mydata/_data",
+        "Name": "mydata",
+        "Scope": "local"
+    }
+]
+```
+
+**What this means:**
+- `CreatedAt` = When it was created
+- `Mountpoint` = Where Docker stored it (you don't need to remember this!)
+- `Driver` = Type of storage (local = on this computer)
+
+### Command 4: Delete Volume
+
+```bash
+docker volume rm mydata
+```
+
+**What it does:** Deletes the volume and ALL data in it
+
+⚠️ **WARNING:** Container must be stopped first!
+
+### Command 5: Delete All Unused Volumes
+
+```bash
+docker volume prune
+```
+
+**What it does:** Deletes all volumes not used by any container
+
+⚠️ **WARNING:** This deletes data! Be careful!
+
+---
+
+## PRACTICAL EXAMPLE 3: VOLUMES
+
+### Scenario: Database That Survives Container Crashes
+
+**Step 1: Create volume**
+```bash
+docker volume create nginx-logs
+```
+
+**What happens:** Docker creates storage space called "nginx-logs"
+
+**Step 2: Run nginx with volume**
+```bash
+docker run -d \
+  --name my-nginx \
+  --mount source=nginx-logs,target=/var/log/nginx \
+  -p 8080:80 \
+  nginx
+```
+
+**Breaking down each part:**
+- `docker run -d` = Start container in background
+- `--name my-nginx` = Name it "my-nginx"
+- `--mount` = Attach volume (better than -v)
+  - `source=nginx-logs` = Which volume to use
+  - `target=/var/log/nginx` = Where to attach inside container
+- `-p 8080:80` = Port mapping
+- `nginx` = Image to use
+
+**What happens:**
+1. Docker starts nginx
+2. Attaches "nginx-logs" volume to `/var/log/nginx`
+3. Nginx writes logs to volume
+4. Logs are safe even if container dies
+
+**Step 3: Generate logs**
+```bash
+curl http://localhost:8080
+curl http://localhost:8080
+curl http://localhost:8080
+```
+
+**Step 4: Check logs inside container**
+```bash
+docker exec my-nginx ls /var/log/nginx
+```
+
+**What this does:**
+- `docker exec` = Run command inside running container
+- `my-nginx` = Container name
+- `ls /var/log/nginx` = List files in that folder
+
+**Output:**
+```
+access.log
+error.log
+```
+
+**Step 5: KILL the container**
+```bash
+docker stop my-nginx
+docker rm my-nginx
+```
+
+Container is GONE!
+
+**Step 6: Check if volume still exists**
+```bash
+docker volume ls
+```
+
+**Output:**
+```
+DRIVER    VOLUME NAME
+local     nginx-logs
+```
+
+✅ Volume is still there!
+
+**Step 7: Create NEW container with SAME volume**
+```bash
+docker run -d \
+  --name my-nginx-new \
+  --mount source=nginx-logs,target=/var/log/nginx \
+  -p 8080:80 \
+  nginx
+```
+
+**Step 8: Check logs**
+```bash
+docker exec my-nginx-new ls /var/log/nginx
+docker exec my-nginx-new cat /var/log/nginx/access.log
+```
+
+🎉 **OLD LOGS ARE STILL THERE!** Data survived container death!
+
+---
+
+## PRACTICAL EXAMPLE 4: SHARE DATA BETWEEN CONTAINERS
+
+### Scenario: Writer Container and Reader Container
+
+**Step 1: Create shared volume**
+```bash
+docker volume create shared-data
+```
+
+**Step 2: Run writer container**
+```bash
+docker run -d --name writer \
+  --mount source=shared-data,target=/data \
+  ubuntu bash -c "echo 'Hello from writer' > /data/message.txt && sleep 3600"
+```
+
+**What this does:**
+- Starts Ubuntu container named "writer"
+- Attaches "shared-data" volume to `/data`
+- Runs command: `echo 'Hello from writer' > /data/message.txt`
+  - This creates file with text "Hello from writer"
+- `sleep 3600` = Keep container running for 1 hour
+
+**Step 3: Run reader container**
+```bash
+docker run -it --name reader \
+  --mount source=shared-data,target=/data \
+  ubuntu bash
+```
+
+**What this does:**
+- Starts Ubuntu container named "reader"
+- Attaches SAME "shared-data" volume to `/data`
+- `-it` = Interactive mode (you can type commands)
+- Opens bash shell
+
+**Step 4: Inside reader container, read the file**
+```bash
+cat /data/message.txt
+```
+
+**Output:** `Hello from writer`
+
+🎉 **Both containers see the SAME data!**
+
+**Step 5: Exit reader container**
+```bash
+exit
+```
+
+---
+
+## CHECKING WHAT VOLUMES A CONTAINER USES
+
+### Command: Inspect Container
+
+```bash
+docker inspect my-nginx
+```
+
+**What it does:** Shows ALL details about container
+
+**Too much info? Filter it:**
+```bash
+docker inspect my-nginx | grep -A 10 Mounts
+```
+
+**What this does:**
+- `docker inspect my-nginx` = Get container details
+- `|` = Pipe (send output to next command)
+- `grep -A 10 Mounts` = Find "Mounts" and show 10 lines after it
+
+**Output:**
+```json
+"Mounts": [
+    {
+        "Type": "volume",
+        "Name": "nginx-logs",
+        "Source": "/var/lib/docker/volumes/nginx-logs/_data",
+        "Destination": "/var/log/nginx",
+        "Driver": "local",
+        "Mode": "rw",
+        "RW": true
+    }
+]
+```
+
+**What this tells you:**
+- `Type: volume` = Using volume (not bind mount)
+- `Name: nginx-logs` = Volume name
+- `Destination: /var/log/nginx` = Where it's mounted in container
+- `Mode: rw` = Read-write permissions
+
+---
+
+## WHEN TO USE WHAT?
+
+### Use Bind Mounts:
+- ✅ Development (editing code on your computer)
+- ✅ Need to see files easily
+- ✅ Testing locally
+- ✅ Want instant file changes
+
+### Use Volumes:
+- ✅ Production
+- ✅ Databases
+- ✅ Important data
+- ✅ Sharing between containers
+- ✅ Need backups
+- ✅ Cloud deployments
+
+**Golden Rule: Volumes for production, Bind Mounts for development**
+
+---
+
+## IMPORTANT RULES
+
+### Rule 1: Stop Container Before Deleting Volume
+
+```bash
+# ❌ WRONG - Will fail!
+docker volume rm myvolume
+```
+
+**Error:** `Error response from daemon: remove myvolume: volume is in use`
+
+```bash
+# ✅ CORRECT
+docker stop my-container
+docker rm my-container
+docker volume rm myvolume
+```
+
+### Rule 2: Use --mount (Not -v) for Volumes
+
+```bash
+# ⚠️ Works but unclear
+docker run -v mydata:/app nginx
+
+# ✅ Clear and readable
+docker run --mount source=mydata,target=/app nginx
+```
+
+**Why?** `--mount` is clearer. Anyone reading your command understands it better.
+
+### Rule 3: Always Name Your Volumes
+
+```bash
+# ❌ BAD - Anonymous volume
+docker run -v /app nginx
+
+# ✅ GOOD - Named volume
+docker volume create app-data
+docker run --mount source=app-data,target=/app nginx
+```
+
+---
+
+## REAL-WORLD EXAMPLES
+
+### Example 1: PostgreSQL Database
+
+```bash
+# Step 1: Create volume for database
+docker volume create postgres-data
+
+# Step 2: Run PostgreSQL
+docker run -d \
+  --name database \
+  --mount source=postgres-data,target=/var/lib/postgresql/data \
+  -e POSTGRES_PASSWORD=secret123 \
+  -p 5432:5432 \
+  postgres
+```
+
+**What happens:**
+- Database data goes to "postgres-data" volume
+- Container crashes? Data is safe!
+- Create new container with same volume? Data is back!
+
+### Example 2: Development Setup
+
+```bash
+# Step 1: Create project folder
+mkdir /home/ubuntu/myapp
+cd /home/ubuntu/myapp
+echo "console.log('Hello');" > app.js
+
+# Step 2: Run Node.js with bind mount
+docker run -d \
+  --name dev \
+  -v /home/ubuntu/myapp:/app \
+  -w /app \
+  -p 3000:3000 \
+  node:latest \
+  node app.js
+```
+
+**What happens:**
+- Edit `app.js` on your computer
+- Changes appear instantly in container
+- Perfect for development!
+
+---
+
+## TROUBLESHOOTING
+
+### Problem 1: Can't Delete Volume
+
+**Error:** `volume is in use`
+
+**Solution:**
+```bash
+# Find which container uses it
+docker ps -a --filter volume=myvolume
+
+# Stop and remove that container
+docker stop CONTAINER_NAME
+docker rm CONTAINER_NAME
+
+# Now delete volume
+docker volume rm myvolume
+```
+
+### Problem 2: Data Not Appearing
+
+**Check 1: Does volume exist?**
+```bash
+docker volume ls
+```
+
+**Check 2: Is volume attached to container?**
+```bash
+docker inspect CONTAINER_NAME | grep -A 10 Mounts
+```
+
+**Check 3: Is container running?**
+```bash
+docker ps
+```
+
+---
+
+## COMMAND REFERENCE SHEET
+
+```bash
+# VOLUME COMMANDS
+docker volume create NAME          # Create volume
+docker volume ls                   # List all volumes
+docker volume inspect NAME         # See volume details
+docker volume rm NAME              # Delete volume
+docker volume prune                # Delete all unused volumes
+
+# RUN WITH VOLUME
+docker run --mount source=VOL,target=/path IMAGE
+
+# RUN WITH BIND MOUNT
+docker run -v /host/path:/container/path IMAGE
+
+# CHECK CONTAINER VOLUMES
+docker inspect CONTAINER | grep -A 10 Mounts
+
+# CONTAINER COMMANDS
+docker ps                          # List running containers
+docker ps -a                       # List all containers
+docker stop NAME                   # Stop container
+docker rm NAME                     # Delete container
+docker exec NAME COMMAND           # Run command in container
+```
+
+---
+
+## QUICK PRACTICE (Do This Now!)
+
+```bash
+# 1. Create volume
+docker volume create practice-vol
+
+# 2. Run container with volume
+docker run -it --mount source=practice-vol,target=/data ubuntu bash
+
+# 3. Inside container: Create file
+echo "I did it!" > /data/success.txt
+exit
+
+# 4. Delete container
+docker ps -a
+docker rm CONTAINER_ID
+
+# 5. Create new container with same volume
+docker run -it --mount source=practice-vol,target=/data ubuntu bash
+
+# 6. Inside container: Check file
+cat /data/success.txt
+# Should show: "I did it!"
+
+exit
+
+# 7. Cleanup
+docker volume rm practice-vol
+```
+
+---
+
+## KEY TAKEAWAYS
+
+1. Container dies → Data lost (without volumes/bind mounts)
+2. Bind Mounts = Link your folder to container folder
+3. Volumes = Docker manages storage (BETTER)
+4. Use `--mount` for volumes (clearer syntax)
+5. Use `-v` for bind mounts (shorter)
+6. Volumes for production, Bind Mounts for development
+7. Always stop container before deleting volume
+
+---
+
+## WHAT'S NEXT?
+
+Day 28: Docker Networking
+- How containers talk to each other
+- Network isolation for security
+- Practical networking examples
+
+---
+
+**Remember: Volumes save your data! Always use them for databases and important files!** 🚀
