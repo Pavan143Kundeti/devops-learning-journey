@@ -1,0 +1,646 @@
+Shell Scripting Basics for DevOps – Automation, Linux Commands, and First Script
+Save these notes with this title:
+
+**Shell Scripting Basics for DevOps – Automation, Linux Commands, and First Script**
+
+---
+
+# 1. What is Automation
+
+Definition
+Automation means **reducing manual work by letting the computer do it automatically**.
+
+Simple example
+
+Imagine a teacher asks you:
+
+Write numbers from **1 to 10**
+
+You can type:
+
+```
+1
+2
+3
+4
+...
+10
+```
+
+Now imagine the teacher says:
+
+Write numbers **1 to 10,000**
+
+Now it becomes boring and time-wasting.
+
+A computer should do that work.
+
+That is **automation**.
+
+Real life example
+
+Every morning you:
+
+1. Start server
+2. Pull latest code
+3. Install dependencies
+4. Restart application
+
+Doing this manually every day is stupid.
+
+Instead you write **one script**.
+
+Run script → everything happens automatically.
+
+That is automation.
+
+---
+
+# 2. What is Shell Scripting
+
+Definition
+
+Shell scripting is **writing a set of Linux commands in a file so the computer can execute them automatically**.
+
+In simple words
+
+Instead of typing commands again and again in terminal, we **store them inside a file**.
+
+That file is called a **shell script**.
+
+Example
+
+Instead of typing:
+
+```
+mkdir project
+cd project
+touch app.py
+```
+
+You write them inside a script.
+
+Run script → all commands execute automatically.
+
+---
+
+# 3. Where Shell Scripts Are Used (DevOps Real Example)
+
+DevOps engineers use shell scripts daily.
+
+Example tasks:
+
+Server setup
+
+```
+install docker
+install nginx
+create users
+setup firewall
+```
+
+Deployment
+
+```
+pull code from github
+build application
+restart service
+```
+
+Backup jobs
+
+```
+copy database
+compress files
+upload to cloud
+```
+
+All these are done using **shell scripts**.
+
+---
+
+# 4. Linux Machine
+
+The instructor opened a **Linux terminal**.
+
+Linux is the operating system most servers use.
+
+Examples of Linux:
+
+* Ubuntu
+* Amazon Linux
+* CentOS
+* RedHat
+
+When you launch an AWS EC2 server, it usually runs Linux.
+
+---
+
+# 5. First Command – `ls`
+
+Command
+
+```
+ls
+```
+
+Meaning
+
+List files in the current folder.
+
+Windows comparison
+
+Windows → open folder in File Explorer
+Linux → use `ls`
+
+Example output
+
+```
+file1.txt
+file2.sh
+data.csv
+```
+
+---
+
+# 6. `ls -ltr`
+
+Command
+
+```
+ls -ltr
+```
+
+Meaning
+
+Show detailed file information.
+
+What it shows:
+
+* permissions
+* owner
+* file size
+* creation time
+
+Example output
+
+```
+-rw-r--r-- 1 user user 0 Mar 6 script.sh
+```
+
+---
+
+# 7. Creating a File – `touch`
+
+Command
+
+```
+touch firstscript.sh
+```
+
+Meaning
+
+Create a file.
+
+Example
+
+```
+touch notes.txt
+touch script.sh
+touch data.csv
+```
+
+Windows comparison
+
+Right click → New File
+
+Linux → `touch`
+
+---
+
+# 8. Why `.sh` Extension
+
+`.sh` means **shell script file**.
+
+Examples
+
+| File type    | Extension |
+| ------------ | --------- |
+| Python file  | `.py`     |
+| Java file    | `.java`   |
+| Shell script | `.sh`     |
+
+Example
+
+```
+deploy.sh
+backup.sh
+install.sh
+```
+
+---
+
+# 9. Linux Manual – `man`
+
+Command
+
+```
+man ls
+```
+
+Meaning
+
+Shows **manual documentation of a command**.
+
+Example
+
+```
+man touch
+man cat
+man mkdir
+```
+
+This is like **official help documentation**.
+
+Practical tip
+
+When you forget a command:
+
+```
+man <command>
+```
+
+Example
+
+```
+man docker
+```
+
+---
+
+# 10. Opening a File – `vi`
+
+Command
+
+```
+vi script.sh
+```
+
+Meaning
+
+Open the file in **vi editor**.
+
+vi is a text editor inside Linux terminal.
+
+Windows comparison
+
+Windows → Notepad
+Linux → `vi`
+
+---
+
+# 11. vi Editor Modes
+
+vi has **2 main modes**
+
+### 1. Normal mode
+
+Default mode
+You cannot type text.
+
+### 2. Insert mode
+
+Allows typing.
+
+Enter insert mode
+
+Press
+
+```
+i
+```
+
+You will see
+
+```
+-- INSERT --
+```
+
+Now you can type.
+
+---
+
+# 12. Saving File in vi
+
+Steps
+
+Press
+
+```
+ESC
+```
+
+Then type
+
+```
+:wq
+```
+
+Meaning
+
+Write + quit
+
+File saved and closed.
+
+---
+
+# 13. Exit Without Saving
+
+Press
+
+```
+ESC
+:q!
+```
+
+Meaning
+
+Quit without saving.
+
+---
+
+# 14. Viewing File Without Opening – `cat`
+
+Command
+
+```
+cat script.sh
+```
+
+Meaning
+
+Prints file content directly.
+
+Example
+
+```
+#!/bin/bash
+echo hello
+```
+
+Useful when you **just want to see content quickly**.
+
+---
+
+# 15. What is Shebang
+
+First line of every script.
+
+Example
+
+```
+#!/bin/bash
+```
+
+This is called **shebang**.
+
+Definition
+
+Shebang tells Linux **which program should execute this script**.
+
+Simple example
+
+Think of this like telling:
+
+"Run this file using bash interpreter".
+
+---
+
+# 16. What is Bash
+
+Definition
+
+Bash is a **shell interpreter**.
+
+It reads commands and executes them.
+
+Example
+
+When you type
+
+```
+ls
+```
+
+Bash reads the command and runs it.
+
+---
+
+# 17. Types of Shells
+
+Different shells exist.
+
+Examples
+
+| Shell | Meaning            |
+| ----- | ------------------ |
+| sh    | Bourne shell       |
+| bash  | Bourne Again shell |
+| ksh   | Korn shell         |
+| dash  | Debian shell       |
+
+Most commonly used today
+
+**Bash**
+
+So we write
+
+```
+#!/bin/bash
+```
+
+---
+
+# 18. Why `#!/bin/bash`
+
+Because it tells Linux
+
+Run this script using **bash interpreter**.
+
+Without it, the system may choose another shell.
+
+That may break your script.
+
+So always write
+
+```
+#!/bin/bash
+```
+
+---
+
+# 19. First Shell Script
+
+Example script
+
+```
+#!/bin/bash
+
+echo "My name is Abhishek"
+```
+
+Explanation
+
+`echo` prints text on screen.
+
+Output
+
+```
+My name is Abhishek
+```
+
+---
+
+# 20. Executing a Script
+
+Two methods.
+
+Method 1
+
+```
+sh script.sh
+```
+
+Method 2
+
+```
+./script.sh
+```
+
+But sometimes you see error.
+
+```
+permission denied
+```
+
+---
+
+# 21. Why Permission Denied
+
+Linux is **very strict about security**.
+
+Even if you create a file, it does not automatically allow execution.
+
+You must give permission.
+
+---
+
+# 22. Giving Execute Permission
+
+Command
+
+```
+chmod +x script.sh
+```
+
+Meaning
+
+Give execute permission.
+
+Now run
+
+```
+./script.sh
+```
+
+Output
+
+```
+My name is Abhishek
+```
+
+---
+
+# Real DevOps Example
+
+Deployment script.
+
+```
+#!/bin/bash
+
+echo "Starting deployment"
+
+git pull origin main
+npm install
+pm2 restart app
+
+echo "Deployment completed"
+```
+
+Run
+
+```
+./deploy.sh
+```
+
+Server deploys automatically.
+
+---
+
+# Important Commands Learned
+
+| Command | Purpose               |
+| ------- | --------------------- |
+| ls      | list files            |
+| touch   | create file           |
+| man     | command documentation |
+| vi      | open editor           |
+| cat     | view file             |
+| echo    | print text            |
+| chmod   | change permissions    |
+
+---
+
+# My Extra DevOps Notes (Important)
+
+Always follow these rules when writing scripts.
+
+Rule 1
+Always start with
+
+```
+#!/bin/bash
+```
+
+Rule 2
+Always give execution permission
+
+```
+chmod +x script.sh
+```
+
+Rule 3
+Keep scripts small and clear.
+
+Rule 4
+Add comments.
+
+Example
+
+```
+# install docker
+```
+
+Rule 5
+Test scripts before using on production servers.
+
+---
+
+If you want, next part will become **very important** because the instructor will start teaching:
+
+* variables in shell
+* loops
+* conditions
+* automation scripts used in DevOps
+
+Those are the **real shell scripting skills DevOps engineers use daily**.
