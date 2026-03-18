@@ -1,0 +1,327 @@
+Save this file as:
+
+```text
+day10_git_branching_strategy_notes.txt
+```
+
+Below is a **clean GitHub-ready summary of Day 10**.
+
+---
+
+# Day 10 – Git Branching Strategy
+
+## 1. Why Branching Strategy is Important
+
+Every organization wants to:
+
+* deliver **new features quickly**
+* release **stable software**
+* avoid breaking existing functionality
+
+A proper **Git branching strategy** helps teams:
+
+* develop features in parallel
+* test safely
+* release software regularly
+
+Example:
+
+Companies like Amazon, Uber, Flipkart release updates frequently.
+Branching strategy helps manage these releases efficiently.
+
+---
+
+# 2. What is a Git Branch
+
+A **branch** is a separate line of development in a repository.
+
+It allows developers to work on new features without affecting the main code.
+
+Example:
+
+Main application → Calculator
+
+Features:
+
+* addition
+* subtraction
+* multiplication
+* division
+
+Now developers want to add:
+
+* percentage
+* advanced functions
+
+Instead of modifying the main code directly, they create a **new branch**.
+
+```
+main branch
+    |
+    |---- feature-advanced-calculator
+```
+
+Development happens on the new branch.
+After testing, it is merged into the main branch.
+
+---
+
+# 3. Example (Real World)
+
+Example: Uber application
+
+Initial product:
+
+```
+Uber → Only Cab service
+```
+
+New feature planned:
+
+```
+Uber Bike
+```
+
+Developers create a new branch:
+
+```
+main
+   |
+   |---- feature-bike
+```
+
+Develop bike functionality safely.
+
+After testing:
+
+```
+merge feature-bike → main
+```
+
+Now Uber supports both:
+
+* cab
+* bike
+
+---
+
+# 4. Types of Branches
+
+A standard branching strategy usually has four main branches.
+
+1. Main (Master)
+2. Feature
+3. Release
+4. Hotfix
+
+---
+
+# 5. Main Branch (Master / Main)
+
+The **main branch** contains the latest stable version of the application.
+
+Characteristics:
+
+* always up to date
+* contains tested code
+* reference branch for developers
+
+Example:
+
+```
+main
+ |
+ commit
+ |
+ commit
+ |
+ commit
+```
+
+All completed features eventually merge into **main**.
+
+---
+
+# 6. Feature Branch
+
+Feature branches are used to develop **new features**.
+
+Purpose:
+
+* isolate development
+* prevent breaking main code
+
+Example:
+
+```
+main
+ |
+ |------ feature-percentage
+ |
+ |------ feature-exponent
+ |
+ |------ feature-history
+```
+
+Developers work on these branches.
+
+After testing:
+
+```
+feature branch → merged into main
+```
+
+Then feature branches can be deleted.
+
+---
+
+# 7. Release Branch
+
+Release branches are used to prepare software for production.
+
+Instead of releasing directly from main, teams create a **release branch**.
+
+Example:
+
+```
+main
+ |
+ |------ release-v1.2
+```
+
+Purpose:
+
+* final testing
+* bug fixing
+* stabilization
+
+Only critical fixes are allowed here.
+
+Once ready:
+
+```
+release branch → deployed to customers
+```
+
+---
+
+# 8. Hotfix Branch
+
+Hotfix branches are used for **urgent production issues**.
+
+Example scenario:
+
+A bug appears in production.
+
+Steps:
+
+1. create hotfix branch
+2. fix bug quickly
+3. merge back to main and release branch
+
+Example:
+
+```
+release-v1.2
+     |
+     |------ hotfix-login-bug
+```
+
+Hotfix branches are **short-lived**.
+
+---
+
+# 9. Complete Branching Flow
+
+Typical workflow:
+
+```
+main
+ |
+ |---- feature-login
+ |
+ |---- feature-payment
+ |
+ |---- feature-search
+ |
+ ---> merged into main
+ |
+ |---- release-v2.0
+ |
+ |---- hotfix-critical-bug
+```
+
+---
+
+# 10. Kubernetes Example
+
+Large projects like **Kubernetes** follow the same strategy.
+
+Repository contains:
+
+* main branch
+* multiple feature branches
+* release branches
+
+Example:
+
+```
+main
+ |
+ |---- feature-rate-limiting
+ |---- feature-server-side-apply
+ |---- feature-workload
+ |
+ |---- release-1.26
+ |---- release-1.27
+```
+
+Developers work on feature branches and merge them into main.
+
+Releases are built from **release branches**.
+
+---
+
+# 11. Important Interview Questions
+
+### What is Git branching strategy?
+
+A structured method of managing branches to support development, testing, and releases efficiently.
+
+---
+
+### What is a feature branch?
+
+A temporary branch used to develop a specific feature.
+
+---
+
+### What branch is used for production releases?
+
+Release branch.
+
+---
+
+### Which branch always contains the latest code?
+
+Main (or Master) branch.
+
+---
+
+### What is a hotfix branch?
+
+A branch used to fix critical production bugs quickly.
+
+---
+
+# 12. Key Points
+
+* **main branch** → stable code
+* **feature branch** → new feature development
+* **release branch** → preparing software release
+* **hotfix branch** → urgent production fixes
+
+---
+
+If you want, I can also give you **Day 11 notes (GitHub practical commands like clone, pull, push, PR, merge)** in the same **GitHub-ready format**.
+Those commands are **very important for DevOps interviews.**
