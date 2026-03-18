@@ -1,0 +1,671 @@
+I’ll convert that long lecture into **clean notes you can actually study later**.
+I’ll also add missing explanations so the concepts are clear.
+
+---
+
+# Day 6 Notes
+
+## Linux Operating System & Basics of Shell Commands
+
+File name you can save:
+
+**`Day6_Linux_OS_And_Shell_Basics.md`**
+
+or
+
+**`DevOps_Day6_Linux_Operating_System_And_Shell_Commands`**
+
+---
+
+# 1. Operating System (OS)
+
+### Definition
+
+An **Operating System (OS)** is software that acts as a **bridge between hardware and applications**.
+
+### Simple Flow
+
+```
+User → Application → Operating System → Hardware
+```
+
+Example:
+
+You open a browser.
+
+Browser → asks OS → OS uses CPU/RAM → hardware processes → response back to browser → user sees output.
+
+Without an OS, **hardware is useless**.
+
+---
+
+# 2. Hardware Components
+
+Every computer/server contains:
+
+1. **CPU** – performs calculations
+2. **RAM** – temporary memory
+3. **Storage (Disk / SSD)** – permanent storage
+4. **I/O Devices** – keyboard, mouse, network
+
+Applications cannot directly control these.
+
+The **OS manages them**.
+
+---
+
+# 3. Popular Operating Systems
+
+| OS      | Example                    |
+| ------- | -------------------------- |
+| Windows | Used in personal computers |
+| MacOS   | Used in Apple systems      |
+| Linux   | Used in servers            |
+
+In **DevOps and cloud**, Linux dominates.
+
+---
+
+# 4. Why Linux Is Used in Production
+
+### 1. Free and Open Source
+
+Linux source code is publicly available.
+
+Companies can modify it.
+
+Windows requires license payment.
+
+---
+
+### 2. Secure
+
+Linux has strong permission systems.
+
+Malware targeting Linux is less common.
+
+---
+
+### 3. High Performance
+
+Linux consumes fewer resources.
+
+Servers must handle millions of requests.
+
+Example services running Linux:
+
+* Netflix
+* Amazon
+* Google
+* Facebook
+
+---
+
+### 4. Stable
+
+Servers must run **24/7 without crashing**.
+
+Linux is built for stability.
+
+---
+
+# 5. Linux Distributions
+
+Linux itself is just the **kernel**.
+
+Different companies package it into distributions.
+
+Common ones:
+
+| Distribution | Used For                |
+| ------------ | ----------------------- |
+| Ubuntu       | Most popular            |
+| CentOS       | Enterprise servers      |
+| Debian       | Stable servers          |
+| Alpine       | Lightweight containers  |
+| Red Hat      | Enterprise paid version |
+
+Example in AWS:
+
+Most EC2 machines use **Ubuntu or Amazon Linux**.
+Start with one clear idea.
+
+### 1. What Linux actually is
+
+Linux Kernel is **only the core engine of the operating system**.
+
+It talks to the hardware.
+
+Examples of what the kernel does:
+
+* CPU management
+* Memory management
+* Device control
+* Process scheduling
+
+But the kernel **alone is useless for a normal user**.
+It has no apps, no package manager, no desktop, no tools.
+
+So companies take the Linux kernel and **build a full operating system around it**.
+
+That full package is called a **Linux distribution (distro).**
+
+---
+
+### 2. What a Linux Distribution Contains
+
+A distribution =
+
+Linux Kernel + Tools + Package Manager + System Utilities + Software
+
+Example stack:
+
+```
+Linux Kernel
++ Bash shell
++ Core utilities
++ Package manager
++ Networking tools
++ System services
+= Linux Distribution
+```
+
+---
+
+### 3. Examples of Distributions
+
+| Distribution             | Built by    | Purpose                    |
+| ------------------------ | ----------- | -------------------------- |
+| Ubuntu                   | Canonical   | Beginner friendly, servers |
+| Debian                   | Community   | Very stable servers        |
+| CentOS                   | Community   | Enterprise servers         |
+| Alpine Linux             | Alpine team | Very small containers      |
+| Red Hat Enterprise Linux | Red Hat     | Paid enterprise OS         |
+
+All of them use **the same Linux kernel**, but they differ in:
+
+* package manager
+* default tools
+* update cycle
+* stability
+* support
+
+---
+
+### 4. Real Example (AWS)
+
+When you create a server in Amazon Web Services using an EC2 instance, you choose an OS image like:
+
+* Ubuntu
+* Amazon Linux
+* Debian
+
+These are **Linux distributions**.
+
+So the server runs:
+
+```
+Linux Kernel
++ Ubuntu tools
+= Ubuntu OS
+```
+
+---
+
+### 5. Simple Analogy
+
+Think like this.
+
+Linux Kernel = **Car Engine**
+
+Distributions = **Different Car Brands**
+
+Example:
+
+| Engine       | Car     |
+| ------------ | ------- |
+| Linux Kernel | Ubuntu  |
+| Linux Kernel | Debian  |
+| Linux Kernel | Red Hat |
+
+Same engine idea.
+Different features and design.
+
+---
+
+### 6. What matters for DevOps / Backend / Data Engineering
+
+In real work you mostly see:
+
+* Ubuntu
+* Amazon Linux
+* Alpine Linux (for Docker containers)
+
+If you're learning cloud or DevOps, **Ubuntu is the most practical one to learn first**.
+
+---
+
+If you want, I can also explain **why companies prefer Ubuntu over other Linux distributions in cloud servers**. That part is very important for DevOps and backend work.
+
+
+---
+
+# 6. Linux Architecture
+
+Basic structure:
+
+```
+Applications
+     ↑
+System Libraries
+     ↑
+Kernel
+     ↑
+Hardware
+```
+
+---
+
+## Kernel
+
+### Definition
+
+The **kernel** is the core of the operating system.
+
+It directly interacts with hardware.
+
+---
+
+### Kernel Responsibilities
+
+#### 1. Process Management
+
+Controls running programs.
+
+Example:
+
+Running:
+
+* Python
+* Docker
+* Jenkins
+
+Kernel schedules CPU usage.
+
+---
+
+#### 2. Memory Management
+
+Controls RAM allocation.
+
+Example:
+
+Application A → 1GB RAM
+Application B → 2GB RAM
+
+Kernel manages this.
+
+---
+
+#### 3. Device Management
+
+Controls hardware devices:
+
+* disk
+* keyboard
+* network card
+* USB
+
+---
+
+#### 4. System Calls
+
+Applications communicate with kernel using **system calls**.
+
+Example:
+
+```
+open file
+read file
+write file
+delete file
+```
+
+Applications request the kernel to perform these tasks.
+
+---
+
+# 7. What Is a Shell?
+
+### Definition
+
+A **shell** is a program that allows users to interact with the operating system using commands.
+
+Think of it as a **command interpreter**.
+
+Instead of clicking buttons, you type commands.
+
+Example:
+
+```
+ls
+pwd
+cd
+mkdir
+```
+
+---
+
+# 8. Why Shell Is Important
+
+Servers usually **do not have GUI**.
+
+Reason:
+
+GUI consumes memory and CPU.
+
+Servers must be lightweight.
+
+So engineers control servers using **command line shells**.
+
+---
+
+# 9. Popular Shells
+
+| Shell | Description      |
+| ----- | ---------------- |
+| Bash  | Most widely used |
+| Zsh   | Advanced shell   |
+| Sh    | Original shell   |
+| Ksh   | Korn shell       |
+
+Most DevOps engineers use **Bash**.
+
+---
+
+# 10. Connecting to a Server
+
+Command used:
+
+```
+ssh -i key.pem ubuntu@3.89.45.22
+```
+
+Explanation:
+
+| Part       | Meaning                 |
+| ---------- | ----------------------- |
+| ssh        | Secure Shell connection |
+| -i         | identity key            |
+| key.pem    | private key file        |
+| ubuntu     | username                |
+| 3.89.45.22 | server public IP        |
+
+This connects your laptop to the remote server.
+
+---
+
+# 11. Basic Linux Commands
+
+## 1. pwd
+
+**Present Working Directory**
+
+Shows current folder.
+
+Example:
+
+```
+pwd
+```
+
+Output:
+
+```
+/home/ubuntu
+```
+
+---
+
+## 2. ls
+
+Lists files and directories.
+
+```
+ls
+```
+
+Example output:
+
+```
+file1.txt
+folder1
+script.sh
+```
+
+---
+
+## 3. ls -ltr
+
+Lists detailed information.
+
+```
+ls -ltr
+```
+
+Shows:
+
+* permissions
+* owner
+* file size
+* timestamp
+
+Example:
+
+```
+drwxr-xr-x 2 ubuntu ubuntu 4096 May 20 test
+```
+
+---
+
+## 4. cd
+
+Change directory.
+
+```
+cd foldername
+```
+
+Example:
+
+```
+cd test
+```
+
+---
+
+## Move Back
+
+```
+cd ..
+```
+
+Move two directories back:
+
+```
+cd ../../
+```
+
+---
+
+# 12. Creating Files
+
+Command:
+
+```
+touch filename
+```
+
+Example:
+
+```
+touch test.txt
+```
+
+Creates an empty file.
+
+---
+
+# 13. Creating and Editing Files
+
+Command:
+
+```
+vi filename
+```
+
+Example:
+
+```
+vi test.txt
+```
+
+Steps:
+
+1. Press **i** → enter insert mode
+2. Write content
+3. Press **ESC**
+4. Type:
+
+```
+:wq
+```
+
+Save and exit.
+
+---
+
+# 14. Reading File Content
+
+Command:
+
+```
+cat filename
+```
+
+Example:
+
+```
+cat test.txt
+```
+
+Displays file contents.
+
+---
+
+# 15. Creating Directories
+
+Command:
+
+```
+mkdir foldername
+```
+
+Example:
+
+```
+mkdir project
+```
+
+Creates a folder.
+
+---
+
+# 16. Deleting Files
+
+Command:
+
+```
+rm filename
+```
+
+Example:
+
+```
+rm test.txt
+```
+
+---
+
+# 17. Deleting Directories
+
+Command:
+
+```
+rm -r foldername
+```
+
+Example:
+
+```
+rm -r project
+```
+
+Deletes directory and contents.
+
+---
+
+# 18. Why DevOps Engineers Use Shell
+
+Shell helps automate tasks.
+
+Example tasks:
+
+* Deploy applications
+* Backup databases
+* Monitor servers
+* Install packages
+* Run build pipelines
+
+Example automation script:
+
+```
+#!/bin/bash
+
+echo "Starting server setup"
+
+sudo apt update
+sudo apt install docker -y
+
+echo "Docker installed"
+```
+
+One script can perform multiple operations automatically.
+
+---
+
+# Key Takeaways
+
+1. OS connects applications with hardware.
+2. Linux dominates server environments.
+3. Kernel is the core of Linux.
+4. Shell provides command-line interaction.
+5. DevOps engineers heavily use shell commands.
+
+---
+
+If you want, I can also explain the **next extremely important DevOps concept after this lecture**:
+
+**Linux File System Structure**
+
+This includes directories like:
+
+```
+/etc
+/home
+/var
+/bin
+/usr
+```
+
+Understanding this will make **Linux 5× easier**.
