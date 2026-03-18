@@ -1,0 +1,718 @@
+---
+
+# Day15 – Ansible Practical Project (Step-by-Step)
+
+## 1. Goal of This Project
+
+Learn how to use **Ansible for configuration management**.
+
+You will:
+
+1. Install Ansible
+2. Create two EC2 instances
+3. Setup passwordless SSH
+4. Create an inventory file
+5. Run Ansible ad-hoc commands
+6. Write an Ansible Playbook
+7. Install and start Nginx using Ansible
+8. Understand Ansible Roles (for large projects)
+
+---
+
+# 2. Architecture of the Project
+
+You need **two servers**.
+
+| Server         | Purpose              |
+| -------------- | -------------------- |
+| Ansible Server | Control machine      |
+| Target Server  | Machine to configure |
+
+Example:
+
+```
+Ansible Server
+172.31.23.36
+
+Target Server
+172.31.62.28
+```
+
+Ansible will run commands from **Ansible Server → Target Server**.
+
+---
+
+# 3. Step 1 — Launch EC2 Instances
+
+Create **2 Ubuntu EC2 instances** in AWS.
+
+Example:
+
+```
+Instance 1 : ansible-server
+Instance 2 : target-server
+```
+
+Login to both using SSH.
+
+Example
+
+```
+ssh -i key.pem ubuntu@public-ip
+```
+
+---
+
+# 4. Step 2 — Install Ansible
+
+Login into **Ansible Server**.
+
+Update packages:
+
+```
+sudo apt update
+```
+
+Install Ansible:
+
+```
+sudo apt install ansible -y
+```
+
+Verify installation:
+
+```
+ansible --version
+```
+
+If version prints → installation successful.
+
+---
+
+# 5. Step 3 — Setup Passwordless SSH
+
+Ansible works using **SSH**.
+It should connect **without password**.
+
+## Generate SSH Key
+
+Run on **Ansible Server**
+
+```
+ssh-keygen
+```
+
+Press Enter for all options.
+
+This creates:
+
+```
+~/.ssh/id_rsa
+~/.ssh/id_rsa.pub
+```
+
+| File       | Purpose     |
+| ---------- | ----------- |
+| id_rsa     | private key |
+| id_rsa.pub | public key  |
+
+---
+
+## Copy Public Key
+
+Display public key:
+
+```
+cat ~/.ssh/id_rsa.pub
+```
+
+Copy it.
+
+---
+
+## Add Key to Target Server
+
+Login to **Target Server**.
+
+Open authorized keys:
+
+```
+nano ~/.ssh/authorized_keys
+```
+
+Paste the copied public key.
+
+Save.
+
+---
+
+## Test Connection
+
+From **Ansible Server**
+
+```
+ssh ubuntu@target-private-ip
+```
+
+If it logs in **without password**, setup is correct.
+
+---
+
+# 6. Step 4 — Create Inventory File
+
+Inventory file stores **target servers list**.
+
+Create file:
+
+```
+nano inventory
+```
+
+Add target server IP.
+
+Example:
+
+```
+172.31.62.28
+```
+
+Save.
+
+Check:
+
+```
+cat inventory
+```
+
+---
+
+# 7. Step 5 — Run First Ansible Ad-Hoc Command
+
+Ad-hoc commands are **one-line Ansible commands**.
+
+General syntax:
+
+```
+ansible -i inventory all -m module -a "command"
+```
+
+Meaning:
+
+| Option | Meaning        |
+| ------ | -------------- |
+| -i     | inventory file |
+| all    | all servers    |
+| -m     | module         |
+| -a     | arguments      |
+
+---
+
+## Example 1 — Create File
+
+```
+ansible -i inventory all -m shell -a "touch devops.txt"
+```
+
+Check on target server:
+
+```
+ls
+```
+
+File will exist.
+
+---
+
+## Example 2 — Check CPU
+
+```
+ansible -i inventory all -m shell -a "nproc"
+```
+
+---
+
+## Example 3 — Check Disk
+
+```
+ansible -i inventory all -m shell -a "df -h"
+```
+
+---
+
+# 8. Step 6 — Understand Ansible Modules
+
+Modules are **built-in tasks**.
+
+Examples:
+
+| Module  | Purpose           |
+| ------- | ----------------- |
+| shell   | run shell command |
+| copy    | copy files        |
+| apt     | install packages  |
+| service | manage services   |
+
+Example:
+
+```
+ansible -i inventory all -m apt -a "name=nginx state=present"
+```
+
+---
+
+# 9. Step 7 — Group Servers in Inventory
+
+Inventory can group servers.
+
+Example:
+
+```
+[web]
+172.31.62.28
+
+[db]
+172.31.62.50
+```
+
+Run only on web servers:
+
+```
+ansible -i inventory web -m shell -a "uptime"
+```
+
+---
+
+# 10. Step 8 — Write First Ansible Playbook
+
+Playbooks are written in **YAML format**.
+
+Create file:
+
+```
+nano first-playbook.yaml
+```
+
+---
+
+## Playbook Code
+
+```
+---
+- name: Install and Start Nginx
+  hosts: all
+  become: true
+
+  tasks:
+
+    - name: Install nginx
+      apt:
+        name: nginx
+        state: present
+
+    - name: Start nginx
+      service:
+        name: nginx
+        state: started
+```
+
+---
+
+# 11. Explanation of Playbook
+
+| Line   | Meaning            |
+| ------ | ------------------ |
+| ---    | YAML start         |
+| name   | playbook name      |
+| hosts  | target machines    |
+| become | run as root        |
+| tasks  | list of operations |
+
+Task 1 → install nginx
+Task 2 → start nginx
+
+---
+
+# 12. Step 9 — Run Playbook
+
+Command:
+
+```
+ansible-playbook -i inventory first-playbook.yaml
+```
+
+Output:
+
+```
+Gathering Facts
+Install nginx
+Start nginx
+```
+
+---
+
+# 13. Step 10 — Verify Result
+
+Login to target server:
+
+```
+sudo systemctl status nginx
+```
+
+You should see:
+
+```
+active (running)
+```
+
+Now nginx installed successfully.
+
+---
+
+# 14. Step 11 — Use Verbose Mode (Debug)
+
+For detailed logs:
+
+```
+ansible-playbook -i inventory first-playbook.yaml -vvv
+```
+
+This shows:
+
+* SSH connection
+* python execution
+* package installation
+* task results
+
+Used for **debugging issues**.
+
+---
+
+# 15. Step 12 — When To Use Ad-Hoc vs Playbooks
+
+Ad-Hoc Commands
+
+Use when:
+
+* small tasks
+* quick checks
+* simple commands
+
+Example
+
+```
+check disk
+create file
+restart service
+```
+
+---
+
+Playbooks
+
+Use when:
+
+* multiple tasks
+* automation
+* production deployments
+
+Example
+
+```
+install nginx
+configure nginx
+copy config file
+restart nginx
+```
+
+---
+
+# 16. Step 13 — Real DevOps Use Case
+
+Example project:
+
+Create Kubernetes cluster.
+
+Workflow:
+
+```
+Terraform
+    ↓
+Create EC2 Instances
+
+Ansible
+    ↓
+Configure Kubernetes Master
+
+Ansible
+    ↓
+Configure Worker Nodes
+```
+
+Tools:
+
+| Tool      | Purpose               |
+| --------- | --------------------- |
+| Terraform | create infrastructure |
+| Ansible   | configure servers     |
+
+---
+
+# 17. Step 14 — Problem with Large Playbooks
+
+Example:
+
+Kubernetes setup requires:
+
+```
+50+ tasks
+certificates
+variables
+configuration files
+```
+
+Single playbook becomes messy.
+
+Solution:
+
+**Ansible Roles**
+
+---
+
+# 18. Step 15 — Create Ansible Role
+
+Command:
+
+```
+ansible-galaxy role init kubernetes
+```
+
+Directory created:
+
+```
+kubernetes/
+```
+
+Structure:
+
+```
+kubernetes
+ ├── tasks
+ ├── handlers
+ ├── templates
+ ├── files
+ ├── vars
+ ├── defaults
+ ├── meta
+ └── tests
+```
+
+---
+
+# 19. Role Folder Explanation
+
+### tasks
+
+Main tasks executed.
+
+```
+tasks/main.yml
+```
+
+---
+
+### files
+
+Static files to copy.
+
+Example:
+
+```
+index.html
+config files
+```
+
+---
+
+### templates
+
+Dynamic configuration templates.
+
+Uses **Jinja2 templating**.
+
+---
+
+### handlers
+
+Triggered when task changes.
+
+Example:
+
+```
+restart nginx
+reload apache
+```
+
+---
+
+### vars
+
+Variables for playbook.
+
+---
+
+### defaults
+
+Default variable values.
+
+---
+
+### meta
+
+Metadata about role.
+
+Example:
+
+```
+author
+license
+description
+```
+
+---
+
+### tests
+
+Unit testing for role.
+
+---
+
+# 20. Real DevOps Workflow
+
+Typical DevOps automation:
+
+```
+Developer pushes code
+        ↓
+CI/CD pipeline triggers
+        ↓
+Terraform creates infrastructure
+        ↓
+Ansible configures servers
+        ↓
+Application deployed
+```
+
+---
+
+# 21. What You Practiced in This Project
+
+You learned:
+
+1. Install Ansible
+2. Setup SSH key authentication
+3. Create inventory
+4. Run ad-hoc commands
+5. Write Ansible playbook
+6. Install Nginx using Ansible
+7. Understand roles
+8. Understand real DevOps workflow
+
+---
+
+# 22. Files You Can Push to GitHub
+
+Recommended structure:
+
+```
+Day15-Ansible-Practice
+│
+├── inventory
+├── first-playbook.yaml
+├── commands.txt
+└── README.md
+```
+
+---
+
+# 23. Important Interview Questions
+
+Difference between:
+
+### Ad-Hoc vs Playbook
+
+Ad-Hoc
+
+```
+single command
+quick tasks
+no reuse
+```
+
+Playbook
+
+```
+multiple tasks
+automation
+reusable
+written in YAML
+```
+
+---
+
+### Inventory File
+
+Stores:
+
+```
+target server IPs
+server groups
+```
+
+---
+
+### Become
+
+Used to run tasks as **root user**.
+
+Example:
+
+```
+become: true
+```
+
+---
+
+### Modules
+
+Reusable units in Ansible.
+
+Example:
+
+```
+apt
+service
+copy
+shell
+```
+
+---
+
+# 24. One Important Tip (My Advice)
+
+Always follow this learning order:
+
+```
+Linux
+→ AWS
+→ Bash
+→ Git
+→ Ansible
+→ Terraform
+→ Docker
+→ Kubernetes
+→ CI/CD
+```
+
+Many beginners try Ansible without **Linux basics**, which causes confusion.
+
+---
