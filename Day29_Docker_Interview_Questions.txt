@@ -1,0 +1,238 @@
+# Day 29: Docker Interview Questions - Quick Guide
+
+## 12 MOST ASKED QUESTIONS
+
+---
+
+## Q1: What is Docker?
+
+**Answer:**
+"Docker is a platform to build, run, and manage containers. I use it to:
+- Write Dockerfiles
+- Build images
+- Run containers
+- Push to registries like Docker Hub or ECR"
+
+---
+
+## Q2: Containers vs Virtual Machines?
+
+**Answer:**
+"Containers are lightweight - they don't have a complete OS.
+
+Container: App + Dependencies + Minimal libraries = 100 MB
+VM: App + Complete OS + Kernel = 5-10 GB
+
+Containers share host OS kernel. VMs have their own OS."
+
+---
+
+## Q3: Docker Lifecycle?
+
+**Answer:**
+"1. Write Dockerfile
+2. Build image: `docker build -t myapp .`
+3. Run container: `docker run myapp`
+4. Push to registry: `docker push myapp`
+5. Pull and deploy: `docker pull myapp`"
+
+---
+
+## Q4: Docker Components?
+
+**Answer:**
+"Three main parts:
+1. Docker Client (CLI) - Where we type commands
+2. Docker Daemon - Executes all commands
+3. Docker Registry - Stores images (Docker Hub, ECR)"
+
+---
+
+## Q5: COPY vs ADD?
+
+**Answer:**
+"COPY: Copies local files to container
+ADD: Can copy local files + download from URLs + extract archives
+
+Use COPY 99% of the time. Only use ADD for downloading files."
+
+---
+
+## Q6: CMD vs ENTRYPOINT?
+
+**Answer:**
+"CMD: Can be overridden by user (flexible)
+ENTRYPOINT: Cannot be overridden (fixed)
+
+Example:
+```dockerfile
+ENTRYPOINT ["python3"]           # Fixed
+CMD ["app.py", "arg1", "arg2"]   # User can change
+```
+
+Use both for flexibility!"
+
+---
+
+## Q7: Docker Network Types?
+
+**Answer:**
+"Four types:
+
+1. Bridge (Default) - Most common, containers get private IPs
+2. Host - Container uses host network (insecure, avoid!)
+3. Overlay - Multi-host networking (Kubernetes/Swarm)
+4. Macvlan - Container appears as physical device
+
+Use Bridge for 95% of cases."
+
+---
+
+## Q8: How to Isolate Containers?
+
+**Answer:**
+"Use separate networks:
+
+```bash
+# Create networks
+docker network create public-net
+docker network create secure-net
+
+# Public containers
+docker run --network public-net login
+
+# Secure containers (isolated!)
+docker run --network secure-net payment
+```
+
+Different networks = Cannot communicate = Secure!"
+
+---
+
+## Q9: Multi-Stage Build?
+
+**Answer:**
+"Build in stages, copy only what's needed to final stage.
+
+```dockerfile
+# Stage 1: Build
+FROM maven:3.8 AS build
+COPY . .
+RUN mvn package
+
+# Stage 2: Runtime (only this matters!)
+FROM openjdk:11-jre-slim
+COPY --from=build /app/target/app.jar .
+CMD ["java", "-jar", "app.jar"]
+```
+
+Result: 1.5 GB → 200 MB (80% smaller!)"
+
+---
+
+## Q10: Distroless Images?
+
+**Answer:**
+"Minimal images with ONLY runtime + app. No shell, no package managers.
+
+```dockerfile
+FROM gcr.io/distroless/python3
+COPY app.py .
+CMD ["app.py"]
+```
+
+Benefits:
+- 90% smaller
+- More secure (no shell = hacker can't run commands)
+- Fewer vulnerabilities"
+
+---
+
+## Q11: Docker Challenges?
+
+**Answer:**
+"Three main challenges:
+
+1. Docker Daemon is single point of failure
+   - If daemon crashes, all containers affected
+
+2. Daemon runs as root
+   - Security risk if compromised
+
+3. Resource management
+   - One container can consume all resources
+   - Solution: Set limits with `-m` and `--cpus`"
+
+---
+
+## Q12: How to Secure Containers?
+
+**Answer:**
+"Six key steps:
+
+1. Use distroless images
+2. Isolate networks (separate networks for sensitive containers)
+3. Scan images: `docker scan myapp`
+4. Don't run as root: Add `USER appuser` in Dockerfile
+5. Set resource limits: `docker run -m 512m --cpus=1 myapp`
+6. Use secrets management (not environment variables)"
+
+---
+
+## QUICK COMMAND REFERENCE
+
+```bash
+# Build
+docker build -t myapp .
+
+# Run
+docker run -d myapp
+
+# Networks
+docker network create mynet
+docker run --network mynet myapp
+
+# Limits
+docker run -m 512m --cpus=1 myapp
+
+# Scan
+docker scan myapp
+
+# Multi-stage
+FROM node AS build
+FROM nginx
+COPY --from=build /app .
+```
+
+---
+
+## INTERVIEW TIPS
+
+1. Start with short answer, then explain
+2. Use YOUR examples ("In my project...")
+3. If you don't know, say "I haven't used that, but I know..."
+4. Ask questions back (shows interest)
+
+---
+
+## PRACTICE
+
+Read each question. Can you answer WITHOUT looking?
+
+Count your score:
+- 0-4: Review Days 24-28
+- 5-8: Good! Practice more
+- 9-12: Ready for interviews!
+
+---
+
+## WHAT'S NEXT?
+
+Day 30: Kubernetes
+- Why Kubernetes after Docker?
+- Auto-scaling, auto-healing
+- Multi-host container management
+
+---
+
+**Remember: Understand concepts, don't memorize answers!** 🚀
