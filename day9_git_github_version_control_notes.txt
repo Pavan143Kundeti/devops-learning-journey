@@ -1,0 +1,451 @@
+Use this **clean note format** and save it as:
+
+```
+day9_git_github_version_control_notes.txt
+```
+
+Below is a **clean GitHub-ready summary** of your Day 9 content.
+
+---
+
+# Day 9 – Git, GitHub and Version Control Basics
+
+## 1. What is Version Control System (VCS)
+
+A Version Control System is a tool that helps developers **manage changes in source code over time**.
+
+It solves two major problems.
+
+### 1. Code Sharing
+
+Example:
+
+Developer 1 → writes **addition function**
+Developer 2 → writes **subtraction function**
+
+Both must combine their code to build a **calculator application**.
+
+Without version control:
+
+* Files shared via email/slack
+* Difficult when there are **hundreds of files**
+* Hard to track who changed what
+
+VCS allows developers to **share code through a repository**.
+
+---
+
+### 2. Versioning (Tracking Code Changes)
+
+Example development timeline:
+
+Version 1 → Addition of 2 numbers
+Version 2 → Addition of 3 numbers
+Version 3 → Addition of 4 numbers
+
+Later the company decides:
+
+Return to **Version 1**.
+
+Without version control this becomes messy.
+
+Version control allows:
+
+* Track code history
+* Go back to any previous version
+* See who made changes
+* Compare code differences
+
+---
+
+# 2. Types of Version Control Systems
+
+## Centralized Version Control System
+
+Examples:
+
+* CVS
+* SVN (Subversion)
+
+Architecture:
+
+```
+Developer1
+     |
+     v
+Central Server (SVN)
+     ^
+     |
+Developer2
+```
+
+All code changes go through **one central server**.
+
+Problem:
+
+If the server goes down → developers cannot work or share code.
+
+---
+
+## Distributed Version Control System
+
+Example:
+
+* Git
+
+Architecture:
+
+```
+Developer1  <--->  Git Repository  <--->  Developer2
+      |                     |
+   Local Copy           Local Copy
+```
+
+Each developer has a **full copy of the repository**.
+
+Advantages:
+
+* No single point of failure
+* Developers can work offline
+* Faster operations
+
+---
+
+# 3. What is Fork
+
+Fork means:
+
+Creating a **complete copy of an existing repository**.
+
+Example:
+
+Original repo
+
+```
+company-project
+```
+
+Developer forks it
+
+```
+company-project → pavan-project (fork)
+```
+
+Now the developer can:
+
+* modify code
+* experiment safely
+* submit changes later
+
+---
+
+# 4. Difference Between Git and GitHub
+
+## Git
+
+Git is:
+
+* a **distributed version control system**
+* open-source software
+* used to track code changes
+
+Developers install Git locally.
+
+Example setup:
+
+```
+EC2 Server
+   |
+Install Git
+   |
+Developers push code
+```
+
+---
+
+## GitHub
+
+GitHub is:
+
+A **cloud platform built on top of Git**.
+
+It provides extra features:
+
+* code hosting
+* pull requests
+* issue tracking
+* project management
+* collaboration
+* CI/CD
+
+Other similar platforms:
+
+* GitLab
+* Bitbucket
+
+---
+
+# 5. Installing Git
+
+Download Git from:
+
+```
+https://git-scm.com/downloads
+```
+
+For Linux:
+
+Example command
+
+```
+sudo apt install git
+```
+
+Check installation:
+
+```
+git --version
+```
+
+---
+
+# 6. Creating a Git Repository
+
+Create project folder
+
+```
+mkdir example.com
+cd example.com
+```
+
+Create file
+
+```
+vim calculator.sh
+```
+
+Example code
+
+```
+x = a + b
+```
+
+Initialize git repository
+
+```
+git init
+```
+
+Hidden git directory created
+
+```
+.git
+```
+
+Check files
+
+```
+ls -la
+```
+
+---
+
+# 7. Git Lifecycle (Important)
+
+Every developer must know these commands.
+
+```
+git add
+git commit
+git push
+```
+
+Workflow:
+
+```
+Working Directory
+      |
+      v
+git add
+      |
+      v
+Staging Area
+      |
+      v
+git commit
+      |
+      v
+Local Repository
+      |
+      v
+git push
+      |
+      v
+Remote Repository (GitHub)
+```
+
+---
+
+# 8. Git Status
+
+Check repository state
+
+```
+git status
+```
+
+Shows:
+
+* modified files
+* staged files
+* untracked files
+
+---
+
+# 9. Tracking Files
+
+Add file to tracking
+
+```
+git add calculator.sh
+```
+
+Check status
+
+```
+git status
+```
+
+---
+
+# 10. Checking Code Changes
+
+```
+git diff
+```
+
+Shows difference between versions.
+
+Example:
+
+Old
+
+```
+a + b
+```
+
+New
+
+```
+a + b + c
+```
+
+---
+
+# 11. Creating a Commit
+
+Commit saves a version of the code.
+
+Command:
+
+```
+git commit -m "first version of addition function"
+```
+
+Now Git records the version.
+
+---
+
+# 12. Viewing Commit History
+
+```
+git log
+```
+
+Shows:
+
+* commit id
+* author
+* date
+* message
+
+Example:
+
+```
+commit 83hgd92
+Author: Abhishek
+Message: second version
+```
+
+---
+
+# 13. Reverting to Old Version
+
+Get commit id from:
+
+```
+git log
+```
+
+Reset repository
+
+```
+git reset --hard <commit_id>
+```
+
+Now code returns to the previous version.
+
+---
+
+# 14. Sharing Code Using GitHub
+
+Steps:
+
+1. Create GitHub account
+
+```
+https://github.com
+```
+
+2. Click
+
+```
+New Repository
+```
+
+3. Enter
+
+```
+repository name
+description
+public/private
+```
+
+4. Create repository
+
+Now developers can:
+
+* push code
+* collaborate
+* review changes
+* manage projects
+
+---
+
+# Key Git Commands
+
+```
+git init
+git status
+git add
+git commit
+git diff
+git log
+git reset
+git push
+```
+
+---
+
+If you want, I can also give you the **Day10 GitHub practical commands (clone, push, pull, branch, PR)** in a **perfect GitHub-ready notes format**.
+Those are **very important for interviews and DevOps jobs.**
