@@ -1,0 +1,828 @@
+Save this file as:
+
+```
+day11_git_commands_devops_workflow.txt
+```
+
+Below is a **clean, structured GitHub-ready version of Day 11 notes**.
+
+---
+
+# Day 11 – Git Commands for DevOps Engineers
+
+This session covers **practical Git commands used daily by developers and DevOps engineers**.
+
+Core focus:
+
+* Git lifecycle
+* Important Git commands
+* Branching commands
+* Clone vs Fork
+* Merge vs Rebase
+* Git workflow used in organizations
+
+---
+
+# 1. Initialize a Git Repository
+
+Command:
+
+```
+git init
+```
+
+Purpose:
+
+Creates a **local Git repository** in your project directory.
+
+Example:
+
+```
+mkdir git-demo
+cd git-demo
+git init
+```
+
+After running this command, Git creates a hidden directory:
+
+```
+.git
+```
+
+This folder contains:
+
+* commit history
+* branch information
+* configuration
+* tracking data
+
+Check it with:
+
+```
+ls -a
+```
+
+---
+
+# 2. Git Status
+
+Command:
+
+```
+git status
+```
+
+Purpose:
+
+Shows:
+
+* tracked files
+* untracked files
+* staged files
+* modified files
+
+Example output:
+
+```
+Untracked files:
+calculator.sh
+```
+
+This means Git **is not tracking the file yet**.
+
+---
+
+# 3. Add Files to Git Tracking
+
+Command:
+
+```
+git add filename
+```
+
+Example:
+
+```
+git add calculator.sh
+```
+
+Purpose:
+
+Moves files to the **staging area**.
+
+Git now starts **tracking changes**.
+
+Add all files:
+
+```
+git add .
+```
+
+---
+
+# 4. See Changes in Files
+
+Command:
+
+```
+git diff
+```
+
+Purpose:
+
+Shows **line-by-line differences** between file versions.
+
+Example output:
+
+```
++ x = 1 + 2
+```
+
+This indicates a new line was added.
+
+---
+
+# 5. Commit Changes
+
+Command:
+
+```
+git commit -m "commit message"
+```
+
+Example:
+
+```
+git commit -m "Added addition function"
+```
+
+Purpose:
+
+Creates a **snapshot of your code**.
+
+Every commit stores:
+
+* author
+* timestamp
+* changes
+* commit message
+
+---
+
+# 6. View Commit History
+
+Command:
+
+```
+git log
+```
+
+Shows:
+
+* commit ID
+* author
+* date
+* commit message
+
+Short version:
+
+```
+git log --oneline
+```
+
+Example:
+
+```
+a1b2c3 Added addition function
+d4e5f6 Added subtraction
+```
+
+---
+
+# 7. Push Code to Remote Repository
+
+Command:
+
+```
+git push
+```
+
+Purpose:
+
+Uploads code from **local repository → remote repository**.
+
+Remote repository examples:
+
+* GitHub
+* GitLab
+* Bitbucket
+
+---
+
+# 8. Remote Repository
+
+Check remote configuration:
+
+```
+git remote -v
+```
+
+Example output:
+
+```
+origin https://github.com/user/repo.git
+```
+
+If no remote exists, push will fail.
+
+Add remote manually:
+
+```
+git remote add origin https://github.com/user/repo.git
+```
+
+Then push:
+
+```
+git push -u origin main
+```
+
+---
+
+# 9. Clone Repository
+
+Command:
+
+```
+git clone repository_url
+```
+
+Example:
+
+```
+git clone https://github.com/user/project.git
+```
+
+Purpose:
+
+Downloads an **existing repository from GitHub to your local machine**.
+
+Clone methods:
+
+1. HTTPS
+2. SSH
+
+---
+
+# 10. HTTPS vs SSH Authentication
+
+### HTTPS
+
+Uses:
+
+* GitHub username
+* password or access token
+
+Example:
+
+```
+git clone https://github.com/user/project.git
+```
+
+---
+
+### SSH
+
+Uses:
+
+* SSH key authentication
+
+Generate SSH key:
+
+```
+ssh-keygen
+```
+
+Public key location:
+
+```
+~/.ssh/id_rsa.pub
+```
+
+Steps:
+
+1. Copy public key
+2. Add it to GitHub SSH settings
+3. Clone using SSH
+
+Example:
+
+```
+git clone git@github.com:user/project.git
+```
+
+---
+
+# 11. Clone vs Fork
+
+### Git Clone
+
+Purpose:
+
+Download repository to your system.
+
+Example:
+
+```
+git clone https://github.com/user/project.git
+```
+
+Used when:
+
+* working on existing project
+* joining a team project
+
+---
+
+### Git Fork
+
+Fork creates a **copy of a repository under your GitHub account**.
+
+Example:
+
+Original repository:
+
+```
+github.com/kubernetes/kubernetes
+```
+
+Forked version:
+
+```
+github.com/yourusername/kubernetes
+```
+
+Used for:
+
+* open-source contributions
+* creating independent versions
+
+---
+
+# 12. Create a New Branch
+
+Command:
+
+```
+git checkout -b branch-name
+```
+
+Example:
+
+```
+git checkout -b division
+```
+
+Purpose:
+
+Create a new branch and switch to it.
+
+Check branches:
+
+```
+git branch
+```
+
+Example output:
+
+```
+main
+division
+```
+
+---
+
+# 13. Switch Between Branches
+
+Command:
+
+```
+git checkout branch-name
+```
+
+Example:
+
+```
+git checkout main
+```
+
+This switches to the **main branch**.
+
+---
+
+# 14. Merge Branch
+
+Command:
+
+```
+git merge branch-name
+```
+
+Example:
+
+```
+git merge division
+```
+
+Purpose:
+
+Combines changes from another branch into the current branch.
+
+---
+
+# 15. Cherry Pick
+
+Command:
+
+```
+git cherry-pick commit_id
+```
+
+Purpose:
+
+Copies **a specific commit from another branch**.
+
+Example:
+
+```
+git cherry-pick a1b2c3
+```
+
+Used when:
+
+* only one commit is required
+* not entire branch
+
+---
+
+# 16. Git Merge vs Git Rebase
+
+Both combine branches but behave differently.
+
+---
+
+## Git Merge
+
+Command:
+
+```
+git merge branch-name
+```
+
+Result:
+
+Creates a **merge commit**.
+
+History becomes **non-linear**.
+
+Example:
+
+```
+A---B---C main
+     \
+      D---E feature
+```
+
+After merge:
+
+```
+A---B---C-------F
+     \         /
+      D---E----
+```
+
+---
+
+## Git Rebase
+
+Command:
+
+```
+git rebase branch-name
+```
+
+Result:
+
+Rewrites commit history.
+
+Creates **linear history**.
+
+Example:
+
+Before:
+
+```
+A---B---C main
+     \
+      D---E feature
+```
+
+After rebase:
+
+```
+A---B---C---D---E
+```
+
+---
+
+# 17. When to Use Merge vs Rebase
+
+Use **merge** when:
+
+* you want to preserve history
+* team collaboration
+
+Use **rebase** when:
+
+* you want clean commit history
+* linear project timeline
+
+---
+
+# 18. Merge Conflicts
+
+Merge conflict occurs when:
+
+Two branches modify the **same file or same line**.
+
+Example conflict markers:
+
+```
+<<<<<<< HEAD
+percentage code
+=======
+multiplication code
+>>>>>>> branch-name
+```
+
+Fix process:
+
+1. open file
+2. choose correct code
+3. remove markers
+4. save file
+
+Then run:
+
+```
+git add file
+git commit
+```
+
+---
+
+# 19. Git Workflow (Common Interview Question)
+
+Typical workflow used by developers:
+
+```
+git add .
+git commit -m "message"
+git push
+```
+
+Full development workflow:
+
+```
+git clone
+git checkout -b feature-branch
+git add
+git commit
+git push
+git merge
+```
+
+---
+
+# 20. Most Important Git Commands (Daily Use)
+
+| Command      | Purpose             |
+| ------------ | ------------------- |
+| git init     | create repository   |
+| git status   | check repo status   |
+| git add      | stage changes       |
+| git commit   | save changes        |
+| git log      | view commit history |
+| git clone    | download repo       |
+| git push     | upload changes      |
+| git pull     | fetch updates       |
+| git branch   | list branches       |
+| git checkout | switch branch       |
+| git merge    | combine branches    |
+| git rebase   | rewrite history     |
+
+---
+
+Your notes were missing the **real practical difference between clone and fork**. Most notes online explain it poorly. Here is the **clear, practical explanation developers actually use.**
+
+---
+
+# Difference Between Git Clone and Git Fork
+
+## 1. Git Clone
+
+Command:
+
+```
+git clone <repository_url>
+```
+
+Example:
+
+```
+git clone https://github.com/user/project.git
+```
+
+### What it actually does
+
+`git clone` **downloads a repository from GitHub to your local machine**.
+
+You get:
+
+* full project code
+* complete commit history
+* all branches
+
+Your local machine becomes a **working copy of that repository**.
+
+### Important point
+
+You **cannot push changes if you don't have permission**.
+
+Example scenario:
+
+Repository:
+
+```
+https://github.com/company/project
+```
+
+If you run:
+
+```
+git clone https://github.com/company/project.git
+```
+
+You can:
+
+* read code
+* run code
+* create branches
+* commit locally
+
+But if you try:
+
+```
+git push
+```
+
+GitHub will reject it if you **are not a collaborator**.
+
+---
+
+## 2. Git Fork
+
+Fork is **not a Git command**.
+
+Fork happens on **GitHub interface**.
+
+When you fork a repository, GitHub creates a **copy of that repository under your GitHub account**.
+
+Example:
+
+Original repository:
+
+```
+https://github.com/kubernetes/kubernetes
+```
+
+After fork:
+
+```
+https://github.com/yourusername/kubernetes
+```
+
+Now you **own this copy**.
+
+You have full permissions.
+
+You can:
+
+* push changes
+* modify code
+* create branches
+* experiment freely
+
+---
+
+# Simple Visual Explanation
+
+### Clone
+
+```
+GitHub Repo  ----->  Your Local Machine
+```
+
+You only **download the project**.
+
+---
+
+### Fork
+
+```
+Original Repo (someone else's)
+          |
+          |
+       Fork
+          |
+          v
+Your GitHub Repo  ----->  Clone  ----->  Your Local Machine
+```
+
+First GitHub creates **your copy**, then you clone it.
+
+---
+
+# Real Developer Workflow (Open Source)
+
+Step 1
+
+Fork repository on GitHub.
+
+Step 2
+
+Clone your fork.
+
+```
+git clone https://github.com/yourusername/project.git
+```
+
+Step 3
+
+Create a branch.
+
+```
+git checkout -b feature-login
+```
+
+Step 4
+
+Make changes and push.
+
+```
+git push origin feature-login
+```
+
+Step 5
+
+Create **Pull Request** to original repository.
+
+---
+
+# Key Difference Table
+
+| Feature          | Clone              | Fork                             |
+| ---------------- | ------------------ | -------------------------------- |
+| Where it happens | Local machine      | GitHub                           |
+| What it creates  | Local copy         | GitHub copy                      |
+| Ownership        | Original owner     | Your GitHub account              |
+| Push permission  | Only if allowed    | Full permission                  |
+| Used for         | Working on project | Contributing to others' projects |
+
+---
+
+# One Line Interview Answer
+
+Clone:
+
+> Download repository from GitHub to local machine.
+
+Fork:
+
+> Create your own copy of someone else's repository on GitHub.
+
+---
+
+# Common Beginner Mistake
+
+Many people think **clone replaces fork**.
+
+Wrong.
+
+Correct workflow for open source:
+
+```
+Fork → Clone → Modify → Push → Pull Request
+```
+
+---
