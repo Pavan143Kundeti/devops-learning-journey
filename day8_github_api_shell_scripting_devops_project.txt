@@ -1,0 +1,664 @@
+Day8: DevOps Project: Automating GitHub Repository Access Check using Shell Script and GitHub API
+---------------------------------------------------------
+Good. This is a **very important DevOps concept video**.
+It mixes **Shell scripting + APIs + automation**. Most beginners get confused here.
+
+I’ll explain it **step-by-step**, in **very simple terms**, with **real examples**, and also tell you **where to run everything**.
+
+---
+
+# Topic (Save this as Notes)
+
+**DevOps Project: Automating GitHub Repository Access Check using Shell Script and GitHub API**
+
+---
+
+# 1. First Understand the Problem
+
+Imagine you are a **DevOps engineer in a company**.
+
+Your company has:
+
+```
+50 microservices
+50 GitHub repositories
+100 developers
+```
+
+Every repository has people who can:
+
+```
+read
+write
+admin
+```
+
+Example repo:
+
+```
+payment-service
+```
+
+People with access:
+
+```
+Alice → read
+Bob → write
+Charlie → admin
+```
+
+---
+
+# Real Company Problem
+
+One day HR says:
+
+```
+Bob resigned today.
+```
+
+Now DevOps team must check:
+
+```
+Does Bob have access to any repo?
+```
+
+Without automation you must do:
+
+```
+Open GitHub
+Open repo
+Go to settings
+Go to collaborators
+Check users
+Repeat 50 times
+```
+
+This is **very slow**.
+
+---
+
+# DevOps Solution
+
+Automate it.
+
+Write a script that prints:
+
+```
+Users who have access to a repository
+```
+
+Example output:
+
+```
+alice
+bob
+john
+```
+
+Now DevOps can quickly identify:
+
+```
+Bob has access → remove it
+```
+
+---
+
+# 2. How DevOps Talks to Applications
+
+There are **2 ways** to communicate with software.
+
+### Method 1
+
+**User Interface (UI)**
+
+Example:
+
+```
+Browser
+→ github.com
+→ click buttons
+```
+
+Example:
+
+```
+GitHub → open repo → settings → collaborators
+```
+
+---
+
+### Method 2
+
+**API**
+
+Instead of clicking UI, you send a request.
+
+Example:
+
+```
+script → API → GitHub → response
+```
+
+---
+
+# Definition
+
+### API
+
+API = Application Programming Interface
+
+Meaning:
+
+```
+A way for software to talk to another software.
+```
+
+Example:
+
+```
+Your script → GitHub API
+```
+
+---
+
+# Real Example
+
+You open:
+
+```
+https://github.com/kubernetes/kubernetes
+```
+
+You see repo.
+
+But API version looks like:
+
+```
+https://api.github.com/repos/kubernetes/kubernetes
+```
+
+This returns **JSON data**.
+
+---
+
+# Example API Response
+
+Example output:
+
+```
+{
+  "name": "kubernetes",
+  "owner": "kubernetes",
+  "stars": 110000
+}
+```
+
+This is **machine readable data**.
+
+---
+
+# 3. Why DevOps Uses APIs
+
+DevOps does **automation**.
+
+Example automation tasks:
+
+```
+check repo access
+create issues
+trigger builds
+deploy code
+monitor pipelines
+```
+
+All these use **APIs**.
+
+---
+
+# 4. Tools Used in This Project
+
+| Tool         | Purpose              |
+| ------------ | -------------------- |
+| EC2          | server to run script |
+| Shell Script | automation           |
+| GitHub API   | get repo data        |
+| curl         | call API             |
+| jq           | parse JSON           |
+
+---
+
+# 5. What is `curl`
+
+### Definition
+
+`curl`
+
+A command-line tool used to send HTTP requests to APIs.
+
+Example:
+
+```
+curl https://api.github.com
+```
+
+It fetches data.
+
+---
+
+# 6. What is `jq`
+
+### Definition
+
+`jq`
+
+A tool used to **extract fields from JSON data**.
+
+Example JSON:
+
+```
+{
+"name": "pavan",
+"role": "developer"
+}
+```
+
+Extract name:
+
+```
+jq '.name'
+```
+
+Output:
+
+```
+pavan
+```
+
+---
+
+# 7. Why GitHub Token is Needed
+
+Normally you login using:
+
+```
+username
+password
+```
+
+But APIs use:
+
+```
+token
+```
+
+---
+
+# Definition
+
+### GitHub Personal Access Token
+
+A secret key used to authenticate API requests.
+
+Example:
+
+```
+ghp_xxxxxxx
+```
+
+Think of it like:
+
+```
+API password
+```
+
+Never share it.
+
+---
+
+# 8. How Script Works (Big Picture)
+
+Flow:
+
+```
+Shell Script
+      ↓
+GitHub API
+      ↓
+JSON response
+      ↓
+jq extracts usernames
+      ↓
+Script prints users
+```
+
+---
+
+# 9. The Script Execution
+
+You cloned project:
+
+```
+git clone <repo>
+```
+
+Then:
+
+```
+cd shell-script-projects/github-api
+```
+
+Script name:
+
+```
+list-users.sh
+```
+
+---
+
+# 10. Environment Variables
+
+Instead of putting secrets in script:
+
+```
+export username=yourgithubusername
+export token=githubtoken
+```
+
+Why?
+
+Security.
+
+Script reads them from environment.
+
+---
+
+# 11. Running the Script
+
+Command format:
+
+```
+./list-users.sh <org-name> <repo-name>
+```
+
+Example:
+
+```
+./list-users.sh devopsbyexamples python
+```
+
+Meaning:
+
+```
+check repo
+devopsbyexamples/python
+```
+
+---
+
+# 12. Inside the Script (Simple Logic)
+
+Step 1
+
+Get API URL
+
+```
+https://api.github.com/repos/<owner>/<repo>/collaborators
+```
+
+---
+
+Step 2
+
+Call API using curl
+
+```
+curl -u username:token URL
+```
+
+---
+
+Step 3
+
+GitHub returns JSON
+
+Example:
+
+```
+[
+ {
+  "login": "moit",
+  "permissions": {
+      "admin": false
+  }
+ }
+]
+```
+
+---
+
+Step 4
+
+Use jq to filter
+
+Example:
+
+```
+jq '.[] | select(.permissions.pull==true) | .login'
+```
+
+Meaning:
+
+```
+show users with read access
+```
+
+---
+
+# 13. Why Only "moit" Appeared
+
+Because:
+
+```
+admin users ignored
+```
+
+Script logic:
+
+```
+only show non-admin users
+```
+
+Admin users:
+
+```
+devops team
+```
+
+Collaborators:
+
+```
+developers
+```
+
+---
+
+# 14. Why Kubernetes Repo Failed
+
+You tried:
+
+```
+./list-users.sh kubernetes kubernetes
+```
+
+Error happened.
+
+Reason:
+
+```
+You don't have permission
+```
+
+GitHub API respects permissions.
+
+If you cannot see settings in UI → API also blocks.
+
+---
+
+# 15. Where YOU Should Practice
+
+Use your EC2 server.
+
+You already have it.
+
+So run everything there.
+
+---
+
+# Practice Flow
+
+Step 1
+
+SSH into EC2
+
+```
+ssh -i key.pem ubuntu@ip
+```
+
+---
+
+Step 2
+
+Clone project
+
+```
+git clone https://github.com/<repo>
+```
+
+---
+
+Step 3
+
+Install jq
+
+```
+sudo apt install jq -y
+```
+
+---
+
+Step 4
+
+Set variables
+
+```
+export username=yourgithubusername
+export token=githubtoken
+```
+
+---
+
+Step 5
+
+Run script
+
+```
+./list-users.sh org repo
+```
+
+---
+
+# 16. DevOps Skill You Learned Here
+
+This project teaches **4 major skills**.
+
+| Skill           | Explanation         |
+| --------------- | ------------------- |
+| Shell scripting | automation          |
+| APIs            | talking to services |
+| curl            | API requests        |
+| jq              | JSON parsing        |
+
+These 4 are **daily DevOps tools**.
+
+---
+
+# 17. Real DevOps Version of This
+
+Real companies extend this script.
+
+Example automation:
+
+```
+check 500 repositories
+find users with access
+remove inactive users
+generate security report
+```
+
+This runs automatically.
+
+---
+
+# 18. Small Improvement You Should Add
+
+Instructor mentioned **helper function**.
+
+Purpose:
+
+If user runs script incorrectly.
+
+Example wrong command:
+
+```
+./list-users.sh
+```
+
+Script should show:
+
+```
+Usage:
+./list-users.sh <org> <repo>
+```
+
+This is called **error handling**.
+
+---
+
+# 19. One Important DevOps Habit
+
+Always add script documentation.
+
+Example:
+
+```
+# Script Name: list-users.sh
+# Purpose: list users who have repo access
+# Author: Pavan
+# Usage: ./list-users.sh <org> <repo>
+```
+
+This is **industry practice**.
+
+---
+
+# 20. What You Should Do Next (Important)
+
+To fully understand this project, do this:
+
+Create your own GitHub organization.
+
+Then:
+
+```
+create repo
+add 2 collaborators
+run script
+```
+
+You will see real output.
+
+---
+
+If you want, I can also explain **the script line-by-line like a story (every single command)**.
+That part is where **90% of beginners finally understand APIs + shell scripting clearly.**
