@@ -1,0 +1,482 @@
+Advanced Shell Scripting – Node Health Monitoring
+I read the entire file you uploaded. I will not skip anything the instructor said. I will structure it clearly so you can **practice step-by-step**. I will also add **definitions, meaning, and commands** wherever needed.
+
+Save these notes with this file name:
+
+**`DevOps_Shell_Scripting_Node_Health_Monitoring_Notes.md`**
+
+---
+
+# Advanced Shell Scripting – Node Health Monitoring
+
+## 1. Goal of This Lesson
+
+The instructor is teaching how to create a **shell script that checks the health of a server (node)**.
+
+In real DevOps work, engineers constantly check:
+
+* Disk usage
+* Memory usage
+* CPU usage
+* Running processes
+
+Instead of checking manually every time, we write a **script that prints everything automatically**.
+
+---
+
+# 2. Important Term: Node
+
+### Definition
+
+A **Node** is simply a machine/server.
+
+Examples:
+
+* AWS EC2 instance
+* Virtual machine
+* Physical server
+* Your laptop
+
+In DevOps, when someone says:
+
+> "Check the node health"
+
+They mean:
+
+> "Check the health of the server."
+
+---
+
+# 3. Commands Used to Check Node Health
+
+The instructor reviewed commands from the previous lesson.
+
+These are **very important Linux commands**.
+
+---
+
+# 4. Disk Usage Command
+
+### Command
+
+```bash
+df -h
+```
+
+### Meaning
+
+**df = disk filesystem**
+
+Shows how much disk storage is used and available.
+
+### Example Output
+
+```
+Filesystem      Size  Used Avail Use%
+/dev/xvda1       20G   10G   10G  50%
+```
+
+Meaning
+
+| Column | Meaning         |
+| ------ | --------------- |
+| Size   | Total disk      |
+| Used   | Used space      |
+| Avail  | Free space      |
+| Use%   | Percentage used |
+
+DevOps engineers use this to check if disk is full.
+
+---
+
+# 5. Memory Command
+
+### Command
+
+```
+free -h
+```
+
+### Meaning
+
+Shows RAM usage.
+
+Example output:
+
+```
+total   used   free
+2GB     500MB  1.5GB
+```
+
+This helps detect:
+
+* memory leaks
+* high RAM usage
+* server crashes
+
+---
+
+# 6. CPU Command
+
+### Command
+
+```
+nproc
+```
+
+### Meaning
+
+Shows **number of CPU cores**.
+
+Example:
+
+```
+2
+```
+
+Meaning the machine has **2 CPU cores**.
+
+---
+
+# 7. Process Monitoring Command
+
+### Command
+
+```
+top
+```
+
+### Meaning
+
+Shows **live processes running in the system**.
+
+Information shown:
+
+* CPU usage
+* RAM usage
+* running processes
+* sleeping processes
+* stopped processes
+
+Example info:
+
+```
+PID USER CPU MEM COMMAND
+```
+
+This command is used when a server becomes slow.
+
+---
+
+# 8. Why DevOps Engineers Check These
+
+Before debugging a server issue, engineers check:
+
+1️⃣ Disk space
+2️⃣ Memory usage
+3️⃣ CPU usage
+4️⃣ Running processes
+
+Example problem:
+
+Server slow.
+
+Possible reasons:
+
+* Disk full
+* RAM full
+* CPU overloaded
+* Too many processes
+
+---
+
+# 9. Automating the Check
+
+Instead of running commands manually:
+
+```
+df -h
+free -h
+nproc
+top
+```
+
+DevOps engineers write a **script that runs all checks automatically**.
+
+That script is called:
+
+```
+node health monitoring script
+```
+
+---
+
+# 10. Real Industry Scenario
+
+Imagine a developer says:
+
+> "Something is wrong with my server."
+
+Instead of manually checking everything, a DevOps engineer can run:
+
+```
+./node_health.sh
+```
+
+The script prints:
+
+* CPU
+* memory
+* disk
+* process usage
+
+This saves time.
+
+---
+
+# 11. Script Name
+
+Instructor suggested naming the script:
+
+```
+node_health.sh
+```
+
+---
+
+# 12. Important Term: Shell Script
+
+### Definition
+
+A **shell script** is a file that contains Linux commands executed automatically.
+
+Example:
+
+```
+script.sh
+```
+
+Extension:
+
+```
+.sh
+```
+
+---
+
+# 13. First Line of Every Shell Script
+
+### Shebang
+
+First line should always be:
+
+```
+#!/bin/bash
+```
+
+### Meaning
+
+This tells Linux:
+
+> Run this script using the **Bash shell**.
+
+---
+
+# 14. What is Bash?
+
+### Definition
+
+**Bash = Bourne Again Shell**
+
+It is a **command interpreter used in Linux**.
+
+It reads commands and executes them.
+
+Example:
+
+When you type:
+
+```
+ls
+```
+
+Bash executes the command.
+
+---
+
+# 15. Example Script Structure
+
+Create script.
+
+```
+nano node_health.sh
+```
+
+Add this:
+
+```bash
+#!/bin/bash
+
+echo "Disk Usage"
+df -h
+
+echo "Memory Usage"
+free -h
+
+echo "CPU Cores"
+nproc
+
+echo "Running Processes"
+top
+```
+
+---
+
+# 16. Save the File
+
+Press:
+
+```
+CTRL + X
+Y
+ENTER
+```
+
+---
+
+# 17. Give Execution Permission
+
+Important step.
+
+```
+chmod +x node_health.sh
+```
+
+### Meaning
+
+`chmod` = change mode
+
+`+x` = make executable
+
+---
+
+# 18. Run the Script
+
+```
+./node_health.sh
+```
+
+This will execute all commands automatically.
+
+---
+
+# 19. Instructor's Real DevOps Use Case
+
+The instructor explained a real workflow.
+
+DevOps engineer writes a script.
+
+Uploads it to:
+
+```
+GitHub
+```
+
+Now when someone has server issues:
+
+Engineer just:
+
+1. Downloads script from GitHub
+2. Runs it on the server
+
+Example:
+
+```
+git clone repo
+cd repo
+./node_health.sh
+```
+
+The script prints all server health details.
+
+---
+
+# 20. Why This Matters for DevOps
+
+DevOps engineers automate everything.
+
+Instead of manual checks:
+
+```
+df
+free
+top
+```
+
+They use **automation scripts**.
+
+This saves time when managing **hundreds of servers**.
+
+---
+
+# 21. Practice This Right Now
+
+You can practice using:
+
+Your **EC2 instance**
+
+OR
+
+**Git Bash terminal**
+
+Recommended practice:
+
+Login to EC2
+
+```
+ssh -i key.pem ubuntu@IP
+```
+
+Then run:
+
+```
+nano node_health.sh
+```
+
+Add script.
+
+Make executable.
+
+```
+chmod +x node_health.sh
+```
+
+Run it.
+
+```
+./node_health.sh
+```
+
+---
+
+# 22. What Will Be Done Next (Next Part)
+
+Instructor said next steps:
+
+* Improve script
+* Write structured shell scripts
+* Add better practices
+* Build production-style scripts
+
+---
+
+If you want, I can also explain the **next part the instructor is going to teach**, which usually includes:
+
+* `variables in shell`
+* `if conditions`
+* `loops`
+* `exit codes`
+* `logging`
+* **real DevOps production shell scripts**
+
+These are **very important for DevOps interviews**.
