@@ -1,0 +1,329 @@
+# Day 26: Multi-Stage Docker & Distroless Images
+
+## What You'll Learn
+- How to make Docker images smaller (861 MB → 1.83 MB)
+- How to make Docker images more secure
+- Two tricks: Multi-stage builds + Distroless images
+
+---
+
+## Problem: Docker Images Are Too Big!
+
+### Normal Way (Bad)
+```dockerfile
+FROM ubuntu
+RUN apt-get install python3 pip
+RUN pip install packages
+COPY app.py .
+CMD ["python3", "app.py"]
+```
+
+**What's wrong?**
+Your image has:
+- Ubuntu (400 MB)
+- Python installer (50 MB)
+- Build tools (100 MB)
+- Your app (10 MB)
+
+**Total: 560 MB just to run a 10 MB app!**
+
+It's like buying a whole factory just to get one toy.
+
+---
+
+## Solution 1: Multi-Stage Builds
+
+### Simple Idea
+**Stage 1**: Build your app (use all tools you need)
+**Stage 2**: Run your app (copy only the final app)
+
+Think of it like:
+- **Stage 1 = Kitchen**: Use knife, stove, pots to cook
+- **Stage 2 = Table**: Only bring the food, leave kitchen behind
+
+### How It Works
+```dockerfile
+# Stage 1: Build (we'll throw this away later)
+FROM ubuntu AS build
+RUN apt-get install python3
+COPY app.py .
+RUN python3 -m compile app.py
+
+# Stage 2: Run (this is your final image)
+FROM python:3.9-slim
+COPY --from=build /app.py .
+CMD ["python3", "app.py"]
+```
+
+### Understanding Each Part
+
+**1. Two FROM = Two Stages**
+```dockerfile
+FROM ubuntu AS build     ← Stage 1 starts here
+FROM python:3.9-slim     ← Stage 2 starts here
+```
+
+**2. AS build = Give a Name**
+```dockerfile
+FROM ubuntu AS build     ← Name is "build"
+FROM ubuntu AS test      ← Name is "test"
+```
+You give names so you can use them later.
+
+**3. COPY --from=build = Copy from Stage 1**
+```dockerfile
+COPY --from=build /app.py .
+```
+This means: "Copy app.py from Stage 1 to Stage 2"
+
+Normal COPY gets files from your computer.
+COPY --from gets files from another stage.
+
+**4. Only Last Stage Becomes Your Image**
+- Stage 1: 500 MB (deleted after use)
+- Stage 2: 150 MB (this is your final image)
+
+### Visual Example
+```
+┌─────────────────┐
+│  Stage 1        │
+│  Ubuntu 400 MB  │  Build app here
+│  Build tools    │  ↓
+└─────────────────┘  Copy only app
+        ↓
+┌─────────────────┐
+│  Stage 2        │
+│  Slim 150 MB    │  ← Your final image
+│  App only       │
+└─────────────────┘
+
+Stage 1 is deleted!
+```
+
+### Real Example: Go Calculator
+
+**Without Multi-Stage**
+```dockerfile
+FROM ubuntu
+RUN apt-get install golang
+COPY calculator.go .
+RUN go build calculator.go
+CMD ["./calculator"]
+```
+**Size: 861 MB**
+
+**With Multi-Stage**
+```dockerfile
+# Stage 1: Build
+FROM ubuntu AS build
+RUN apt-get install golang
+COPY calculator.go .
+RUN go build calculator.go
+
+# Stage 2: Run
+FROM scratch
+COPY --from=build /calculator .
+CMD ["./calculator"]
+```
+**Size: 1.83 MB**
+
+**Result: 470 times smaller!**
+
+---
+
+## Solution 2: Distroless Images
+
+### What Is Distroless?
+Super tiny images with ONLY what's needed to run your app.
+
+**Normal image has:**
+- Shell (bash)
+- Package manager (apt)
+- System tools (ls, curl, wget)
+- Your app
+
+**Distroless image has:**
+- Your app
+- That's it!
+
+### Why Use Distroless?
+
+**1. Security**
+- No shell = Hackers can't run commands
+- Fewer packages = Fewer bugs
+- Smaller = Less to attack
+
+**2. Size**
+- Normal: 400 MB
+- Distroless: 50 MB
+
+### Which Image to Use?
+
+| Image | Size | When to Use |
+|-------|------|-------------|
+| scratch | 0 MB | Go, Rust apps |
+| distroless | 50 MB | Python, Java, Node.js |
+| alpine | 20 MB | Need shell for debugging |
+| slim | 150 MB | Need more tools |
+
+### Where to Find Distroless Images?
+
+**GitHub**: Search "GoogleContainerTools/distroless"
+
+**Available:**
+- Python: `gcr.io/distroless/python3`
+- Java: `gcr.io/distroless/java11`
+- Node.js: `gcr.io/distroless/nodejs`
+- Go: `gcr.io/distroless/static`
+
+---
+
+## Complete Examples
+
+### Python App
+```dockerfile
+# Stage 1: Build
+FROM python:3.9 AS build
+COPY requirements.txt .
+RUN pip install --user -r requirements.txt
+COPY app.py .
+
+# Stage 2: Run with distroless
+FROM gcr.io/distroless/python3
+COPY --from=build /root/.local /root/.local
+COPY --from=build /app.py .
+CMD ["app.py"]
+```
+
+### Java App
+```dockerfile
+# Stage 1: Build
+FROM maven:3.8 AS build
+COPY pom.xml src ./
+RUN mvn package
+
+# Stage 2: Run with distroless
+FROM gcr.io/distroless/java11
+COPY --from=build /app/myapp.jar .
+CMD ["myapp.jar"]
+```
+
+### Multiple Stages (Frontend + Backend)
+```dockerfile
+# Stage 1: Build Frontend
+FROM node:16 AS frontend
+COPY frontend/ .
+RUN npm install && npm run build
+
+# Stage 2: Build Backend
+FROM maven:3.8 AS backend
+COPY backend/ .
+RUN mvn package
+
+# Stage 3: Final Image
+FROM openjdk:11-jre-slim
+COPY --from=frontend /app/dist /app/frontend
+COPY --from=backend /app/app.jar /app/
+CMD ["java", "-jar", "/app/app.jar"]
+```
+
+---
+
+## Simple Rules
+
+1. **Name your stages**: `FROM ubuntu AS build`
+2. **Copy only what you need**: Don't copy everything
+3. **Use specific versions**: `python:3.9` not `python:latest`
+4. **Production = Multi-stage + Distroless**
+
+---
+
+## When to Use What?
+
+**Use Distroless:**
+- Production (live apps)
+- When security matters
+- When you want small images
+
+**Use Normal Images:**
+- Development (testing)
+- When you need to debug
+- When learning
+
+---
+
+## Security Comparison
+
+**Before (Ubuntu):**
+- 400+ packages installed
+- Shell available
+- Many security holes
+
+**After (Distroless):**
+- Only your app
+- No shell
+- 99% fewer security holes
+
+---
+
+## Commands to Try
+
+```bash
+# Build normal way
+docker build -t my-app .
+
+# Build with multi-stage
+docker build -t my-app-small .
+
+# Check sizes
+docker images
+
+# Run
+docker run my-app-small
+```
+
+---
+
+## Interview Questions (Simple Answers)
+
+**Q: What is multi-stage build?**
+A: Build in one stage, run in another. Only keep the final stage. Makes images smaller.
+
+**Q: What is distroless?**
+A: Tiny image with only your app and runtime. No shell, no extra tools. More secure.
+
+**Q: Why use them?**
+A: Smaller images (faster deployment) + More secure (fewer vulnerabilities).
+
+**Q: Scratch vs Distroless?**
+A: Scratch = Empty (for Go). Distroless = Has runtime (for Python, Java).
+
+---
+
+## Key Points to Remember
+
+1. Multi-stage = Build in one stage, run in another
+2. Only last stage matters (others are deleted)
+3. Distroless = Only runtime + your app
+4. Result = Smaller + Faster + More secure
+5. Production should always use both
+
+---
+
+## Practice Task
+
+Take any app and:
+1. Write normal Dockerfile
+2. Write multi-stage Dockerfile
+3. Compare sizes
+4. See the difference!
+
+**Expected:**
+- Before: 500-800 MB
+- After: 50-150 MB
+
+---
+
+## Next: Day 27 - Docker Networking
+
+**Remember:** Multi-stage + Distroless = Small + Secure images!
