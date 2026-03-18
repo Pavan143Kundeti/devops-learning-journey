@@ -1,0 +1,662 @@
+---
+
+# Day12_AWS_EC2_NodeJS_Application_Deployment.txt
+
+## Goal of This Session
+
+Deploy a **NodeJS application to AWS EC2** and make it accessible from the internet.
+
+This simulates how real companies deploy applications to cloud servers.
+
+---
+
+# Concepts Covered
+
+## 1. EC2 (Elastic Compute Cloud)
+
+Definition:
+
+EC2 is a cloud service that provides **virtual servers** on AWS.
+
+You can install software, run applications, and host websites.
+
+Example:
+
+Instead of running a website on your laptop, you run it on an **EC2 server**.
+
+Benefits:
+
+* no hardware maintenance
+* scalable
+* accessible from internet
+* high performance servers
+
+---
+
+# 2. IAM (Identity and Access Management)
+
+Definition:
+
+IAM is used to **control who can access AWS resources**.
+
+Example in companies:
+
+Different team members get different permissions.
+
+Example roles:
+
+Developer → EC2 access only
+DevOps → EC2 + S3 + IAM
+Security team → monitoring access
+
+Best practice:
+
+Never use **Root account** for daily work.
+
+Always create **IAM users**.
+
+---
+
+# 3. SSH (Secure Shell)
+
+Definition:
+
+SSH is a protocol used to **securely connect to a remote server**.
+
+Example:
+
+You connect your laptop terminal to an EC2 server.
+
+Command format:
+
+```
+ssh -i key.pem username@server-ip
+```
+
+Example:
+
+```
+ssh -i demo.pem ubuntu@54.252.219.95
+```
+
+---
+
+# 4. Environment Variables (.env file)
+
+Definition:
+
+A file used to store **sensitive configuration values**.
+
+Example:
+
+```
+API_KEYS
+DATABASE_PASSWORD
+PAYMENT_SECRET
+PORT
+DOMAIN
+```
+
+Why use it?
+
+Security.
+
+We do not store secrets directly inside source code.
+
+---
+
+# 5. NodeJS
+
+Definition:
+
+NodeJS allows running **JavaScript outside the browser**.
+
+Used for:
+
+* backend APIs
+* servers
+* microservices
+
+---
+
+# 6. NPM (Node Package Manager)
+
+Definition:
+
+NPM installs libraries required for a NodeJS application.
+
+Example libraries:
+
+* express
+* stripe
+* dotenv
+
+Command:
+
+```
+npm install
+```
+
+---
+
+# Complete Workflow
+
+The instructor followed this exact workflow.
+
+```
+GitHub Repo
+↓
+Clone locally
+↓
+Test application locally
+↓
+Create AWS IAM User
+↓
+Create EC2 Instance
+↓
+SSH into EC2
+↓
+Install NodeJS + npm
+↓
+Clone project into server
+↓
+Run application
+↓
+Expose port using Security Group
+↓
+Access application from browser
+```
+
+---
+
+# Step 1 — Clone GitHub Repository
+
+Command:
+
+```
+git clone <repository_url>
+```
+
+Example:
+
+```
+git clone https://github.com/project/aws-session.git
+```
+
+Purpose:
+
+Download project to your system.
+
+---
+
+# Step 2 — Enter Project Folder
+
+Command:
+
+```
+cd aws-session
+```
+
+Meaning:
+
+`cd` = change directory.
+
+---
+
+# Step 3 — Create Environment File
+
+Command:
+
+```
+touch .env
+```
+
+Meaning:
+
+Creates a hidden file.
+
+---
+
+# Step 4 — Install Dependencies
+
+Command:
+
+```
+npm install
+```
+
+What it does:
+
+Installs all required packages.
+
+These packages go into:
+
+```
+node_modules/
+```
+
+---
+
+# Step 5 — Run Application
+
+Command:
+
+```
+npm run start
+```
+
+Server starts.
+
+Example output:
+
+```
+Server running on port 3000
+```
+
+Test locally:
+
+```
+http://localhost:3000
+```
+
+---
+
+# Step 6 — Create IAM User
+
+Go to:
+
+AWS Console → IAM → Users → Add User
+
+Steps:
+
+1. give username
+2. enable console access
+3. set password
+4. assign permissions
+
+For demo:
+
+```
+AdministratorAccess
+```
+
+In companies:
+
+Use **least privilege principle**.
+
+---
+
+# Step 7 — Launch EC2 Instance
+
+Go to:
+
+```
+AWS → EC2 → Launch Instance
+```
+
+Configuration used in demo:
+
+Name:
+
+```
+demo-nodejs
+```
+
+AMI:
+
+```
+Ubuntu
+```
+
+Instance Type:
+
+```
+t2.micro
+```
+
+Reason:
+
+Free tier.
+
+---
+
+# Step 8 — Create Key Pair
+
+Used for SSH authentication.
+
+File downloaded:
+
+```
+demo.pem
+```
+
+Important rule:
+
+Never share this key.
+
+---
+
+# Step 9 — Connect to EC2 using SSH
+
+Move to Downloads folder:
+
+```
+cd Downloads
+```
+
+Change key permissions:
+
+```
+chmod 400 demo.pem
+```
+
+Explanation:
+
+Only owner can read the key.
+
+Then connect:
+
+```
+ssh -i demo.pem ubuntu@<public-ip>
+```
+
+Example:
+
+```
+ssh -i demo.pem ubuntu@54.252.219.95
+```
+
+Now you are inside EC2 server.
+
+Prompt looks like:
+
+```
+ubuntu@ip-172-31-23-36
+```
+
+---
+
+# Step 10 — Update Packages
+
+Command:
+
+```
+sudo apt update
+```
+
+Purpose:
+
+Update Linux packages.
+
+Best practice whenever using a new server.
+
+---
+
+# Step 11 — Install NodeJS
+
+Command:
+
+```
+sudo apt install nodejs
+```
+
+Verify installation:
+
+```
+node -v
+```
+
+---
+
+# Step 12 — Install NPM
+
+Command:
+
+```
+sudo apt install npm
+```
+
+Verify:
+
+```
+npm -v
+```
+
+---
+
+# Step 13 — Clone Application in EC2
+
+Command:
+
+```
+git clone <repository_url>
+```
+
+Enter directory:
+
+```
+cd aws-session
+```
+
+---
+
+# Step 14 — Create Environment File Again
+
+Environment file is not stored in GitHub.
+
+Command:
+
+```
+touch .env
+```
+
+Edit file using Vim:
+
+```
+vim .env
+```
+
+Insert values.
+
+Save:
+
+```
+ESC
+:x
+```
+
+---
+
+# Step 15 — Install Dependencies
+
+```
+npm install
+```
+
+---
+
+# Step 16 — Run Application
+
+```
+npm run start
+```
+
+Server runs on:
+
+```
+port 3000
+```
+
+---
+
+# Step 17 — Application Not Accessible
+
+Trying:
+
+```
+http://<public-ip>:3000
+```
+
+Result:
+
+```
+Site can't be reached
+```
+
+Reason:
+
+Port not exposed.
+
+---
+
+# Step 18 — Open Security Group
+
+Go to:
+
+```
+EC2
+→ Instance
+→ Security
+→ Security Groups
+```
+
+Edit inbound rules.
+
+Add rule:
+
+Type:
+
+```
+Custom TCP
+```
+
+Port:
+
+```
+3000
+```
+
+Source:
+
+```
+0.0.0.0/0
+```
+
+Meaning:
+
+Allow access from anywhere.
+
+---
+
+# Step 19 — Access Application
+
+Now open:
+
+```
+http://<public-ip>:3000
+```
+
+Application loads successfully.
+
+---
+
+# Key Linux Commands Used
+
+List files:
+
+```
+ls
+```
+
+Show hidden files:
+
+```
+ls -a
+```
+
+Change directory:
+
+```
+cd folder
+```
+
+Create file:
+
+```
+touch file
+```
+
+View file contents:
+
+```
+cat filename
+```
+
+Edit file:
+
+```
+vim filename
+```
+
+Clear terminal:
+
+```
+clear
+```
+
+---
+
+# Important DevOps Lessons from This Project
+
+1. Always test application locally first.
+
+2. Never deploy directly without testing.
+
+3. Use IAM users instead of root.
+
+4. Secure servers using SSH keys.
+
+5. Expose only necessary ports.
+
+6. Use environment variables for secrets.
+
+---
+
+# Real DevOps Deployment Flow
+
+Real companies follow this pipeline:
+
+```
+Developer writes code
+↓
+Push to GitHub
+↓
+CI/CD pipeline runs
+↓
+Build application
+↓
+Deploy to cloud servers
+↓
+Expose application to internet
+```
+
+You manually performed **this pipeline today**.
+
+---
+
+# What You Achieved Today
+
+You successfully learned:
+
+* Git cloning
+* NodeJS project setup
+* EC2 instance creation
+* SSH server access
+* Linux server configuration
+* Security group configuration
+* Deploying web application on cloud
+
+This is a **real DevOps beginner project**.
+
+---
+
