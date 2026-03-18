@@ -1,0 +1,658 @@
+Use this file name:
+
+```
+day9_networking_fundamentals_ip_subnet_cidr_ports.txt
+```
+
+Below are **clean notes in plain English**, keeping **every concept from the video**, plus some extra explanations so you actually understand it.
+
+---
+
+# Networking Fundamentals – IP Address, Subnet, CIDR, Ports
+
+## Why Networking Basics Matter
+
+Many technical roles depend on networking knowledge:
+
+* DevOps Engineer
+* Data Engineer
+* Backend Developer
+* Cloud Engineer
+* Network Engineer
+
+If you do not understand networking, you will struggle with:
+
+* Cloud infrastructure
+* Application deployment
+* Debugging connectivity issues
+* Security configuration
+
+Example question you should understand:
+
+* How does your phone open **google.com**?
+* How does a website send response back to your device?
+
+Networking concepts explain this.
+
+---
+
+# 1. IP Address
+
+## What is an IP Address
+
+An **IP Address** is a **unique number assigned to every device connected to a network**.
+
+Example devices:
+
+* Laptop
+* Mobile phone
+* Server
+* Printer
+* Router
+
+Every device must have a **unique identity**.
+
+Without this, the network cannot know **which device sent a request**.
+
+---
+
+## Simple Home Example
+
+Imagine a house with WiFi.
+
+Inside the house:
+
+* Person 1 has 2 devices
+* Person 2 has 2 devices
+
+Total devices:
+
+```
+4 devices
+```
+
+All devices connect to the same WiFi network.
+
+Now imagine one device visits a **payment website**.
+
+Later you want to know:
+
+* Which device made the payment?
+* Which device visited a suspicious website?
+
+If devices do not have unique identification, this is impossible.
+
+So every device gets a **unique number called IP address**.
+
+---
+
+## Why IP Address is Important
+
+IP address allows you to:
+
+* Identify a device
+* Track activity
+* Block websites for specific devices
+* Monitor network usage
+* Troubleshoot problems
+
+Example:
+
+You want to block **YouTube** for a child’s device.
+
+You block the IP address assigned to that device.
+
+---
+
+# 2. How IP Address Looks
+
+Devices use a standard called **IPv4**.
+
+Example IP addresses:
+
+```
+172.16.34.10
+10.1.2.4
+192.168.1.1
+```
+
+Structure:
+
+```
+number.number.number.number
+```
+
+Each number is separated by a **dot**.
+
+---
+
+## Range of Each Number
+
+Each number can only be between:
+
+```
+0 – 255
+```
+
+Example valid IP:
+
+```
+192.168.12.4
+```
+
+Example invalid IP:
+
+```
+192.600.12.4
+```
+
+600 is not allowed.
+
+---
+
+# 3. Why the Maximum is 255
+
+Computers do not understand normal numbers.
+
+Computers understand **binary numbers (bits)**.
+
+An IPv4 address has:
+
+```
+4 bytes
+```
+
+Each byte has:
+
+```
+8 bits
+```
+
+Total bits:
+
+```
+4 × 8 = 32 bits
+```
+
+So an IP address is actually:
+
+```
+32 bits
+```
+
+---
+
+## Binary Representation
+
+Each byte looks like this:
+
+```
+00000000
+```
+
+or
+
+```
+11111111
+```
+
+If all bits are 1:
+
+```
+11111111
+```
+
+Binary value becomes:
+
+```
+255
+```
+
+So maximum value per section is **255**.
+
+---
+
+# Example: Convert 192 to Binary
+
+Binary positions:
+
+```
+2^7 2^6 2^5 2^4 2^3 2^2 2^1 2^0
+```
+
+192 =
+
+```
+128 + 64
+```
+
+Binary representation:
+
+```
+11000000
+```
+
+So the computer reads:
+
+```
+192 → 11000000
+```
+
+---
+
+# 4. Check Your IP Address
+
+On Linux:
+
+```
+ifconfig
+```
+
+or
+
+```
+ip a
+```
+
+On Windows:
+
+```
+ipconfig
+```
+
+You will see something like:
+
+```
+192.168.1.5
+```
+
+---
+
+# 5. Subnet
+
+Now imagine a **company network**.
+
+The company network has **65,000 IP addresses**.
+
+All employees connect to one network.
+
+Example:
+
+```
+Office WiFi
+```
+
+Problem:
+
+If one device is hacked, the hacker may access **every device in the network**.
+
+This is dangerous.
+
+---
+
+## Solution: Subnet
+
+Subnet means:
+
+```
+Splitting one large network into smaller networks
+```
+
+Example:
+
+```
+Main Network
+     |
+     |---- Finance Network
+     |
+     |---- Employee WiFi
+```
+
+Finance network contains:
+
+* Payroll data
+* Banking details
+* Confidential files
+
+Employee WiFi contains:
+
+* regular devices
+* internet browsing
+
+---
+
+## Benefit of Subnet
+
+Subnet provides:
+
+```
+Security
+Isolation
+Privacy
+```
+
+If a hacker attacks the employee network, the **finance network remains safe**.
+
+---
+
+# 6. Types of Subnets
+
+Two common types:
+
+## Public Subnet
+
+A subnet that **has internet access**.
+
+Example resources:
+
+* Web servers
+* Load balancers
+* Public APIs
+
+---
+
+## Private Subnet
+
+A subnet **without internet access**.
+
+Example resources:
+
+* Databases
+* Internal services
+* Backend applications
+
+These are protected from the internet.
+
+---
+
+# 7. CIDR (Classless Inter-Domain Routing)
+
+CIDR tells:
+
+```
+How many IP addresses are available in a network
+```
+
+CIDR format:
+
+```
+IP_address / number
+```
+
+Example:
+
+```
+172.16.3.0/24
+```
+
+The number after slash defines **network size**.
+
+---
+
+# CIDR Calculation
+
+Formula:
+
+```
+Number of IP addresses = 2^(32 − CIDR number)
+```
+
+---
+
+## Example 1
+
+```
+/24
+```
+
+Calculation:
+
+```
+32 - 24 = 8
+2^8 = 256
+```
+
+So:
+
+```
+256 IP addresses
+```
+
+---
+
+## Example 2
+
+```
+/27
+```
+
+Calculation:
+
+```
+32 - 27 = 5
+2^5 = 32
+```
+
+So:
+
+```
+32 IP addresses
+```
+
+---
+
+## Example 3
+
+```
+/30
+```
+
+Calculation:
+
+```
+32 - 30 = 2
+2^2 = 4
+```
+
+So:
+
+```
+4 IP addresses
+```
+
+---
+
+# Common CIDR Sizes
+
+| CIDR | Number of IPs |
+| ---- | ------------- |
+| /8   | 16 million    |
+| /16  | 65,536        |
+| /24  | 256           |
+| /27  | 32            |
+| /30  | 4             |
+
+---
+
+# Example in AWS
+
+Create a VPC:
+
+```
+192.168.0.0/16
+```
+
+Total IPs:
+
+```
+65,536
+```
+
+Create subnet:
+
+```
+192.168.1.0/24
+```
+
+IPs available:
+
+```
+256
+```
+
+---
+
+# 8. Private IP Address Ranges
+
+Private networks usually use these ranges:
+
+```
+10.0.0.0 – 10.255.255.255
+172.16.0.0 – 172.31.255.255
+192.168.0.0 – 192.168.255.255
+```
+
+These ranges are reserved for **private networks**.
+
+Example home router IP:
+
+```
+192.168.1.1
+```
+
+---
+
+# Public IP Example
+
+Example public IP:
+
+```
+8.8.8.8
+```
+
+This is Google's public DNS server.
+
+You cannot assign this IP to your private device.
+
+---
+
+# 9. Ports
+
+Ports identify **applications running on a machine**.
+
+A single server can run multiple applications.
+
+Example server:
+
+```
+IP: 3.4.5.8
+```
+
+Applications running:
+
+* Website
+* Database
+* Jenkins
+* API server
+
+How does the server know which application should receive the request?
+
+Using **ports**.
+
+---
+
+## Example
+
+Website running on port 80:
+
+```
+3.4.5.8:80
+```
+
+Secure website:
+
+```
+3.4.5.8:443
+```
+
+Custom application:
+
+```
+3.4.5.8:9191
+```
+
+---
+
+# Common Ports
+
+| Port | Service |
+| ---- | ------- |
+| 22   | SSH     |
+| 80   | HTTP    |
+| 443  | HTTPS   |
+| 3306 | MySQL   |
+| 8080 | Jenkins |
+
+---
+
+# Example Scenario
+
+Server IP:
+
+```
+3.4.5.8
+```
+
+Applications:
+
+```
+Web app → port 80
+API → port 9000
+Jenkins → port 8080
+```
+
+Access examples:
+
+```
+3.4.5.8:80
+3.4.5.8:9000
+3.4.5.8:8080
+```
+
+Each port directs traffic to a specific application.
+
+---
+
+# Summary of Concepts
+
+| Concept        | Meaning                             |
+| -------------- | ----------------------------------- |
+| IP Address     | Unique identity of a device         |
+| IPv4           | Standard for IP addresses           |
+| Subnet         | Smaller network inside a network    |
+| Private Subnet | No internet access                  |
+| Public Subnet  | Internet access allowed             |
+| CIDR           | Defines number of IP addresses      |
+| Port           | Identifies applications on a server |
+
+---
+
+# What Comes Next
+
+Next topic in networking:
+
+```
+OSI Model
+```
+
+OSI model explains:
+
+* How data travels through networks
+* Layers of communication
+* Protocols like HTTP, TCP, UDP
+
+This is a **very important networking concept**.
+
+---
+
+If you want, I can also give you a **much clearer DevOps version of networking** (how AWS VPC, subnets, route tables, NAT gateway, internet gateway actually work). That is the **real part companies use**, and it will make everything click instantly.
