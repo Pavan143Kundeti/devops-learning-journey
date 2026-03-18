@@ -1,0 +1,538 @@
+Here are your **clean Day13 notes** in a format you can directly save to GitHub.
+
+Use this file name:
+
+```
+day13_aws_services_for_devops.txt
+```
+
+---
+
+# Day13_AWS_Services_For_DevOps.txt
+
+## Topic
+
+AWS Services that a DevOps Engineer Must Know
+
+AWS provides **200+ services**, but a DevOps engineer does **not need to learn all of them**.
+
+Instead, focus on the **core services used for infrastructure, automation, deployment, monitoring, and security**.
+
+---
+
+# What is AWS
+
+**AWS (Amazon Web Services)** is a cloud platform that provides computing resources as services.
+
+AWS follows different service models:
+
+### IaaS
+
+Infrastructure as a Service
+Example: EC2
+
+You manage:
+
+* OS
+* Applications
+* Runtime
+* Security
+
+AWS manages:
+
+* Hardware
+* Networking
+* Datacenter
+
+---
+
+### PaaS
+
+Platform as a Service
+
+Example:
+
+Managed Kubernetes (EKS)
+
+AWS manages most infrastructure so developers focus only on applications.
+
+---
+
+### SaaS
+
+Software as a Service
+
+Example:
+
+Gmail
+Dropbox
+
+Users simply use the software without managing infrastructure.
+
+---
+
+# Important AWS Services for DevOps Engineers
+
+A DevOps engineer mainly works with **around 15 AWS services**.
+
+---
+
+# 1. EC2 (Elastic Compute Cloud)
+
+EC2 provides **virtual servers** in the cloud.
+
+Used for:
+
+* hosting applications
+* running backend services
+* running CI/CD tools
+* hosting databases
+
+Example:
+
+You deployed a **NodeJS application on EC2 in Day12**.
+
+---
+
+# 2. VPC (Virtual Private Cloud)
+
+VPC provides **network security and isolation**.
+
+It allows you to control how AWS resources communicate.
+
+Important VPC components:
+
+* Subnets
+* CIDR blocks
+* Security groups
+* Route tables
+* Internet gateway
+
+Purpose:
+
+Secure your infrastructure.
+
+Example:
+
+Restrict access to EC2 instances.
+
+---
+
+# 3. EBS (Elastic Block Store)
+
+EBS provides **persistent storage for EC2 instances**.
+
+Used for:
+
+* storing application data
+* database storage
+* backups
+
+Example:
+
+Attach a volume to EC2.
+
+Key features:
+
+* snapshots
+* backups
+* detach and reattach volumes
+
+---
+
+# 4. S3 (Simple Storage Service)
+
+S3 is **object storage** used for storing large files.
+
+Common uses:
+
+* backups
+* application assets
+* log storage
+* static website hosting
+
+Example files:
+
+* JSON
+* Excel
+* images
+* logs
+
+Important features:
+
+* versioning
+* encryption
+* lifecycle rules
+
+Note:
+
+S3 is **encrypted by default now**.
+
+---
+
+# 5. IAM (Identity and Access Management)
+
+IAM controls **who can access AWS resources**.
+
+Used to manage:
+
+* users
+* roles
+* permissions
+* policies
+
+Example:
+
+Developer access:
+
+```
+EC2 read access
+```
+
+QA access:
+
+```
+S3 read-only
+```
+
+Admin access:
+
+```
+Full access
+```
+
+Purpose:
+
+Security and permission control.
+
+---
+
+# 6. CloudWatch
+
+CloudWatch is used for **monitoring AWS resources**.
+
+It collects:
+
+* logs
+* metrics
+* alerts
+
+Example monitoring:
+
+* CPU usage
+* memory
+* network traffic
+
+Example rule:
+
+Send alert if CPU usage > 80%.
+
+---
+
+# 7. AWS Lambda
+
+Lambda is a **serverless compute service**.
+
+You run code **without managing servers**.
+
+How it works:
+
+1. Upload code
+2. AWS automatically runs it
+3. Server is created automatically
+4. Code runs
+5. Server is destroyed
+
+Example use case:
+
+Detect unencrypted EBS volume and automatically encrypt it.
+
+Key point:
+
+Lambda runs **short tasks only**.
+
+---
+
+# Lambda vs EC2
+
+EC2
+
+* permanent server
+* long-running applications
+* manual management
+
+Lambda
+
+* no server management
+* short execution tasks
+* automatic scaling
+
+---
+
+# 8. AWS CI/CD Services
+
+AWS provides built-in CI/CD tools.
+
+Important services:
+
+### CodePipeline
+
+Pipeline orchestration.
+
+Similar to Jenkins pipeline.
+
+---
+
+### CodeBuild
+
+Used for:
+
+* building code
+* running tests
+* compiling applications
+
+Example:
+
+Build Java WAR or JAR file.
+
+---
+
+### CodeDeploy
+
+Deploys applications to:
+
+* EC2
+* on-premise servers
+
+Example workflow:
+
+```
+Code commit
+→ CodeBuild
+→ CodeDeploy
+→ Application deployed
+```
+
+---
+
+# 9. AWS Config
+
+AWS Config monitors **configuration changes in AWS resources**.
+
+Example rules:
+
+* EBS must be encrypted
+* S3 must have versioning enabled
+
+If a rule is violated:
+
+DevOps team can take action.
+
+---
+
+# 10. Billing and Cost Management
+
+DevOps engineers must track **AWS spending**.
+
+You can view:
+
+* service-wise cost
+* monthly cost
+* usage reports
+
+Example:
+
+```
+EC2 = $200
+S3 = $50
+EBS = $30
+```
+
+This helps optimize infrastructure costs.
+
+---
+
+# 11. AWS KMS (Key Management Service)
+
+KMS manages **encryption keys**.
+
+Used for:
+
+* encrypting S3
+* encrypting EBS
+* securing secrets
+
+Purpose:
+
+Protect sensitive data.
+
+Example:
+
+```
+database credentials
+API keys
+certificates
+```
+
+---
+
+# 12. CloudTrail
+
+CloudTrail records **all AWS API activities**.
+
+Example logs:
+
+* who created EC2
+* who deleted S3 bucket
+* who changed security rules
+
+Used for:
+
+* auditing
+* compliance
+* security investigations
+
+---
+
+# 13. EKS (Elastic Kubernetes Service)
+
+EKS is **managed Kubernetes service**.
+
+AWS manages:
+
+* control plane
+* cluster management
+
+You manage:
+
+* containers
+* deployments
+
+If you know Kubernetes already, learning EKS becomes easy.
+
+---
+
+# 14. ECS (Elastic Container Service)
+
+ECS is AWS's **own container orchestration service**.
+
+Difference from EKS:
+
+ECS
+
+AWS proprietary system.
+
+EKS
+
+Uses Kubernetes.
+
+Interview question:
+
+Difference between ECS and EKS.
+
+---
+
+# 15. ELK Stack (Logging System)
+
+ELK stack is used for **centralized logging**.
+
+Components:
+
+### Elasticsearch
+
+Stores and searches logs.
+
+### Logstash
+
+Processes logs.
+
+### Kibana
+
+Visualizes logs using dashboards.
+
+Purpose:
+
+Monitor application errors.
+
+Example use case:
+
+Analyze logs from **1000 microservices**.
+
+---
+
+# Why These Services Matter for DevOps
+
+DevOps engineers focus on:
+
+Automation
+Monitoring
+Security
+Deployment
+Scalability
+
+These AWS services help achieve that.
+
+---
+
+# Summary of Important AWS DevOps Services
+
+Core services:
+
+```
+EC2
+VPC
+EBS
+S3
+IAM
+CloudWatch
+Lambda
+```
+
+DevOps tools:
+
+```
+CodePipeline
+CodeBuild
+CodeDeploy
+```
+
+Security and monitoring:
+
+```
+CloudTrail
+AWS Config
+KMS
+```
+
+Containers:
+
+```
+EKS
+ECS
+```
+
+Logging:
+
+```
+ELK Stack
+```
+
+---
+
+# Key DevOps Responsibilities on AWS
+
+A DevOps engineer should focus on:
+
+Automation
+Efficiency
+Security
+Monitoring
+Cost optimization
+
+---
+
+If you want, I can also give you a **very important thing most beginners miss**:
+
+A **simple diagram that shows how all these AWS services work together in a real DevOps project.**
+
+That makes interviews **much easier to answer.**
