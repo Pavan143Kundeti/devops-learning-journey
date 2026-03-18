@@ -1,0 +1,446 @@
+Good. I went through the whole **Day 7 script explanation**. I’ll convert it into **clean technical notes** so you can save it and revise later. I will not skip any important command or concept the instructor mentioned.
+
+---
+
+# DevOps Shell Scripting – Day 7
+
+## Project: AWS Resource Usage Tracker
+
+### Goal
+
+Create a **shell script that tracks AWS resource usage** and generates a report automatically.
+
+Resources tracked:
+
+* EC2 Instances
+* S3 Buckets
+* Lambda Functions
+* IAM Users
+
+The script will run **automatically using Cron Job**.
+
+---
+
+# 1. Why Companies Move to Cloud
+
+Main reasons:
+
+### 1. Manageability
+
+If a company maintains its own servers:
+
+* Needs data center
+* Needs hardware maintenance
+* Needs patching
+* Needs system engineers
+
+Cloud providers handle this.
+
+Example providers:
+
+* Amazon Web Services
+* Microsoft Azure
+
+---
+
+### 2. Cost Efficiency
+
+Cloud uses **Pay As You Go model**.
+
+Example problem:
+
+Developer creates:
+
+* 100 EC2 instances
+* Many EBS volumes
+
+But they are **not used**.
+
+Still you pay for them.
+
+So DevOps engineers must **monitor resource usage**.
+
+---
+
+# 2. Real DevOps Responsibility
+
+DevOps engineers must track:
+
+* unused instances
+* unused storage
+* unused resources
+
+Ways to do it:
+
+* Python scripts
+* Lambda automation
+* Shell scripting
+* Monitoring dashboards
+
+In this project we use:
+
+**Shell Script + AWS CLI**
+
+---
+
+# 3. Project Architecture
+
+Script will:
+
+1. Collect AWS resource data
+2. Generate report file
+3. Run automatically daily
+
+Automation done using:
+
+**Cron Job**
+
+Example:
+
+Run script daily at **6 PM**.
+
+---
+
+# 4. Prerequisites
+
+You must have:
+
+### 1. AWS CLI installed
+
+Check:
+
+```bash
+aws --version
+```
+
+---
+
+### 2. Configure AWS CLI
+
+Run:
+
+```bash
+aws configure
+```
+
+It asks for:
+
+```
+Access Key
+Secret Key
+Region
+Output format (json)
+```
+
+---
+
+# 5. Create Script File
+
+```bash
+vim aws_resource_tracker.sh
+```
+
+---
+
+# 6. Script Header (Best Practice)
+
+```bash
+#!/bin/bash
+
+# Author: Abhishek
+# Date: 11 Jan
+# Version: v1
+# Description: Reports AWS resource usage
+```
+
+Always include this so others understand the script.
+
+---
+
+# 7. Resources Being Tracked
+
+```bash
+# AWS S3
+# AWS EC2
+# AWS Lambda
+# AWS IAM Users
+```
+
+---
+
+# 8. List S3 Buckets
+
+Command used:
+
+```bash
+aws s3 ls
+```
+
+Script:
+
+```bash
+echo "Print list of S3 buckets"
+aws s3 ls
+```
+
+---
+
+# 9. List EC2 Instances
+
+Command:
+
+```bash
+aws ec2 describe-instances
+```
+
+Script:
+
+```bash
+echo "Print list of EC2 instances"
+aws ec2 describe-instances
+```
+
+---
+
+# 10. List Lambda Functions
+
+Command:
+
+```bash
+aws lambda list-functions
+```
+
+Script:
+
+```bash
+echo "Print list of Lambda functions"
+aws lambda list-functions
+```
+
+---
+
+# 11. List IAM Users
+
+Command:
+
+```bash
+aws iam list-users
+```
+
+Script:
+
+```bash
+echo "Print list of IAM users"
+aws iam list-users
+```
+
+---
+
+# 12. Make Script Executable
+
+```bash
+chmod 777 aws_resource_tracker.sh
+```
+
+Better practice in real projects:
+
+```
+chmod 755
+```
+
+---
+
+# 13. Run Script
+
+```bash
+./aws_resource_tracker.sh
+```
+
+Output shows all resources.
+
+---
+
+# 14. Debug Mode
+
+Add this in script:
+
+```bash
+set -x
+```
+
+This shows **each command executed by the script**.
+
+Example output:
+
+```
++ aws iam list-users
++ aws lambda list-functions
+```
+
+Very useful for debugging.
+
+---
+
+# 15. Problem with Raw Output
+
+AWS CLI returns **large JSON output**.
+
+Example:
+
+```bash
+aws ec2 describe-instances
+```
+
+Output contains many fields.
+
+But we only need:
+
+```
+InstanceId
+```
+
+---
+
+# 16. Using JSON Parser (jq)
+
+Use tool:
+
+```
+jq
+```
+
+Purpose:
+
+Parse JSON output.
+
+Example command:
+
+```bash
+aws ec2 describe-instances | jq '.Reservations[].Instances[].InstanceId'
+```
+
+Explanation:
+
+| Part         | Meaning          |
+| ------------ | ---------------- |
+| Reservations | Top level object |
+| Instances    | Instance list    |
+| InstanceId   | Specific field   |
+
+Output becomes clean:
+
+```
+i-02345abc
+i-98765xyz
+```
+
+---
+
+# 17. Updated EC2 Command
+
+```bash
+echo "Print list of EC2 instances"
+
+aws ec2 describe-instances \
+| jq '.Reservations[].Instances[].InstanceId'
+```
+
+---
+
+# 18. Save Output to File
+
+Create report file.
+
+Example:
+
+```bash
+aws s3 ls >> resource_tracker.txt
+```
+
+Explanation:
+
+```
+>> append output to file
+```
+
+File becomes daily report.
+
+---
+
+# 19. Automate Script with Cron Job
+
+Cron allows **scheduled execution**.
+
+Edit cron:
+
+```bash
+crontab -e
+```
+
+Example schedule:
+
+```
+0 18 * * * /home/ec2-user/aws_resource_tracker.sh
+```
+
+Meaning:
+
+```
+Minute Hour Day Month DayOfWeek
+```
+
+```
+0 18 = 6 PM everyday
+```
+
+So script runs **daily automatically**.
+
+---
+
+# 20. Final Workflow
+
+```
+Shell Script
+     ↓
+AWS CLI Commands
+     ↓
+Collect Resource Data
+     ↓
+Save Report File
+     ↓
+Cron Job runs daily
+     ↓
+Automated resource report
+```
+
+---
+
+# Real DevOps Skills Used
+
+This project combines:
+
+* Linux
+* Shell scripting
+* AWS CLI
+* JSON parsing
+* Cron automation
+
+This is why it is **resume-worthy**.
+
+---
+
+# Suggested Resume Line
+
+You can write:
+
+> Built automated AWS resource monitoring system using Bash, AWS CLI, jq, and cron jobs to track EC2, S3, Lambda, and IAM resources.
+
+---
+
+If you want, I can also give you the **complete clean final script (production version)** that DevOps engineers actually write.
+That version includes:
+
+* error handling
+* logging
+* proper formatting
+* better cron integration.
