@@ -1,0 +1,645 @@
+# Day 28: Docker Networking - Complete Beginner's Guide
+
+## SETUP: WHERE TO RUN COMMANDS
+
+### Connect to Your EC2 Instance (or use local terminal)
+
+```bash
+# Connect to EC2
+ssh -i your-key.pem ubuntu@your-ec2-ip
+
+# Verify Docker is installed
+docker --version
+```
+
+---
+
+## THE SIMPLE PROBLEM
+
+Imagine you have 2 containers:
+- Container 1: Frontend (website)
+- Container 2: Backend (database)
+
+**Problem:** How does Frontend talk to Backend?
+
+**Answer:** Docker Networking!
+
+---
+
+## REAL-WORLD ANALOGY
+
+Think of Docker networking like a house with rooms:
+
+```
+House (Your Computer)
+├── Room 1 (Container 1) - Kitchen
+├── Room 2 (Container 2) - Bedroom
+└── Hallway (Docker Network) - Connects rooms
+
+Without hallway → Rooms can't connect
+With hallway → Rooms can talk to each other
+```
+
+Docker Network = The hallway that connects containers!
+
+---
+
+## PART 1: SEE DEFAULT NETWORKS
+
+### Command: List All Networks
+
+```bash
+docker network ls
+```
+
+**What this does:** Shows all networks on your system
+
+**Output:**
+```
+NETWORK ID     NAME      DRIVER    SCOPE
+abc123def456   bridge    bridge    local
+def456ghi789   host      host      local
+ghi789jkl012   none      null      local
+```
+
+**What each network means:**
+
+1. **bridge** (Default)
+   - Containers use this automatically
+   - Containers get private IPs like 172.17.0.2
+   - Most common network
+
+2. **host**
+   - Container uses your computer's network directly
+   - No isolation (INSECURE!)
+   - Don't use in production
+
+3. **none**
+   - No network at all
+   - Container is completely isolated
+   - Rarely used
+
+---
+
+## PART 2: UNDERSTANDING DEFAULT BRIDGE
+
+### What Happens When You Run a Container?
+
+```bash
+docker run -d --name app1 nginx
+```
+
+**What happens behind the scenes:**
+1. Docker starts nginx container
+2. Automatically connects it to "bridge" network
+3. Gives it IP address like 172.17.0.2
+4. Container can now talk to other containers on same network
+
+### Check Container's IP Address
+
+```bash
+docker inspect app1 | grep IPAddress
+```
+
+**Output:**
+```
+"IPAddress": "172.17.0.2"
+```
+
+This is the container's private IP address!
+
+---
+
+## PART 3: PRACTICAL EXAMPLE - TWO CONTAINERS TALKING
+
+### Scenario: Frontend Needs to Talk to Backend
+
+**Step 1: Run Backend Container**
+```bash
+docker run -d --name backend nginx
+```
+
+**What happens:**
+- Starts nginx container named "backend"
+- Gets IP like 172.17.0.2
+
+**Step 2: Run Frontend Container**
+```bash
+docker run -d --name frontend nginx
+```
+
+**What happens:**
+- Starts nginx container named "frontend"  
+- Gets IP like 172.17.0.3
+
+**Step 3: Check Their IPs**
+```bash
+docker inspect backend | grep IPAddress
+docker inspect frontend | grep IPAddress
+```
+
+**Output:**
+```
+"IPAddress": "172.17.0.2"  ← backend
+"IPAddress": "172.17.0.3"  ← frontend
+```
+
+Both on same network (172.17.x.x)!
+
+**Step 4: Test if They Can Talk**
+```bash
+# Enter frontend container
+docker exec -it frontend bash
+
+# Install ping tool (to test connection)
+apt-get update && apt-get install -y iputils-ping
+
+# Ping backend using IP
+ping 172.17.0.2
+```
+
+**Output:**
+```
+64 bytes from 172.17.0.2: icmp_seq=1 ttl=64 time=0.123 ms
+64 bytes from 172.17.0.2: icmp_seq=2 ttl=64 time=0.098 ms
+```
+
+✅ **SUCCESS!** Frontend can talk to Backend!
+
+**Step 5: Exit Container**
+```bash
+exit
+```
+
+---
+
+## PART 4: THE PROBLEM WITH DEFAULT NETWORK
+
+### Problem: Can't Use Container Names
+
+On default bridge network, you CANNOT ping by name:
+
+```bash
+docker exec -it frontend bash
+ping backend  # ❌ FAILS!
+```
+
+**Error:** `ping: backend: Name or service not known`
+
+You must use IP addresses (172.17.0.2), which is annoying!
+
+### Solution: Custom Networks
+
+Custom networks let you use container names instead of IPs!
+
+---
+
+## PART 5: CREATING CUSTOM NETWORKS
+
+### Command: Create Network
+
+```bash
+docker network create my-network
+```
+
+**What this does:**
+- Creates new network called "my-network"
+- Isolated from default bridge
+- Supports DNS (can use container names!)
+
+**Verify it was created:**
+```bash
+docker network ls
+```
+
+**Output:**
+```
+NETWORK ID     NAME         DRIVER
+abc123         bridge       bridge
+def456         host         host
+ghi789         my-network   bridge  ← Your new network!
+```
+
+---
+
+## PART 6: USING CUSTOM NETWORKS
+
+### Scenario: Two Containers on Custom Network
+
+**Step 1: Create network**
+```bash
+docker network create app-network
+```
+
+**Step 2: Run backend on custom network**
+```bash
+docker run -d --name backend --network app-network nginx
+```
+
+**What this does:**
+- Starts nginx named "backend"
+- Connects to "app-network" (NOT default bridge)
+- Can be reached by name "backend"
+
+**Step 3: Run frontend on same network**
+```bash
+docker run -d --name frontend --network app-network nginx
+```
+
+**Step 4: Test using CONTAINER NAME (not IP!)**
+```bash
+# Enter frontend
+docker exec -it frontend bash
+
+# Install ping
+apt-get update && apt-get install -y iputils-ping
+
+# Ping by NAME (not IP!)
+ping backend
+```
+
+**Output:**
+```
+64 bytes from backend.app-network (172.18.0.2): icmp_seq=1
+```
+
+✅ **SUCCESS!** Can use name "backend" instead of IP!
+
+**Step 5: Exit**
+```bash
+exit
+```
+
+---
+
+## PART 7: NETWORK ISOLATION (SECURITY)
+
+### The Security Problem
+
+Imagine:
+- Login container (less secure)
+- Payment container (highly secure with credit card data)
+
+If both on same network → Login can access Payment data! 🚨
+
+### Solution: Separate Networks
+
+**Step 1: Create two networks**
+```bash
+docker network create public-network
+docker network create secure-network
+```
+
+**Step 2: Run login on public network**
+```bash
+docker run -d --name login --network public-network nginx
+```
+
+**Step 3: Run payment on secure network**
+```bash
+docker run -d --name payment --network secure-network nginx
+```
+
+**Step 4: Try to access payment from login**
+```bash
+# Enter login container
+docker exec -it login bash
+
+# Install ping
+apt-get update && apt-get install -y iputils-ping
+
+# Try to ping payment
+ping payment
+```
+
+**Output:**
+```
+ping: payment: Name or service not known
+```
+
+❌ **FAILS!** Login CANNOT reach payment!
+
+✅ **SUCCESS!** Payment is isolated and secure!
+
+---
+
+## PART 8: CHECKING NETWORK DETAILS
+
+### Command: Inspect Network
+
+```bash
+docker network inspect app-network
+```
+
+**What this shows:**
+- Which containers are connected
+- Their IP addresses
+- Subnet information
+- Gateway
+
+**Output:**
+```json
+[
+    {
+        "Name": "app-network",
+        "Driver": "bridge",
+        "Containers": {
+            "abc123": {
+                "Name": "backend",
+                "IPv4Address": "172.18.0.2/16"
+            },
+            "def456": {
+                "Name": "frontend",
+                "IPv4Address": "172.18.0.3/16"
+            }
+        }
+    }
+]
+```
+
+Shows backend and frontend are both connected!
+
+---
+
+## PART 9: CHECKING CONTAINER'S NETWORK
+
+### Command: Inspect Container
+
+```bash
+docker inspect backend
+```
+
+**Too much info? Filter it:**
+```bash
+docker inspect backend | grep -A 10 Networks
+```
+
+**Output:**
+```json
+"Networks": {
+    "app-network": {
+        "IPAddress": "172.18.0.2",
+        "Gateway": "172.18.0.1"
+    }
+}
+```
+
+Shows which network container is on!
+
+---
+
+## PART 10: CONNECTING CONTAINER TO MULTIPLE NETWORKS
+
+### Use Case: Gateway Container
+
+Sometimes one container needs access to TWO networks.
+
+**Step 1: Create two networks**
+```bash
+docker network create network1
+docker network create network2
+```
+
+**Step 2: Run container on network1**
+```bash
+docker run -d --name gateway --network network1 nginx
+```
+
+**Step 3: Connect same container to network2**
+```bash
+docker network connect network2 gateway
+```
+
+**What this does:**
+- "gateway" container now on BOTH networks
+- Can talk to containers on network1
+- Can talk to containers on network2
+
+**Verify:**
+```bash
+docker inspect gateway | grep -A 10 Networks
+```
+
+Shows both networks!
+
+---
+
+## PART 11: DELETING NETWORKS
+
+### Command: Delete Network
+
+```bash
+docker network rm my-network
+```
+
+**What this does:** Deletes the network
+
+⚠️ **Important:** Must stop containers using it first!
+
+### If Delete Fails
+
+**Error:** `network has active endpoints`
+
+**Solution:**
+```bash
+# Find containers using network
+docker network inspect my-network
+
+# Stop those containers
+docker stop container1 container2
+
+# Remove containers
+docker rm container1 container2
+
+# Now delete network
+docker network rm my-network
+```
+
+---
+
+## PART 12: REAL-WORLD EXAMPLE
+
+### Scenario: Web App with Database
+
+**Step 1: Create network**
+```bash
+docker network create webapp-net
+```
+
+**Step 2: Run database**
+```bash
+docker run -d \
+  --name database \
+  --network webapp-net \
+  -e POSTGRES_PASSWORD=secret123 \
+  postgres
+```
+
+**What this does:**
+- Starts PostgreSQL database
+- On "webapp-net" network
+- Can be reached by name "database"
+
+**Step 3: Run web application**
+```bash
+docker run -d \
+  --name webapp \
+  --network webapp-net \
+  -p 8080:80 \
+  nginx
+```
+
+**What this does:**
+- Starts web app
+- On same "webapp-net" network
+- Can connect to database using hostname "database"
+- Accessible from outside on port 8080
+
+**Step 4: Web app connects to database**
+
+Inside your web app code:
+```
+Database connection: postgresql://database:5432
+```
+
+Uses name "database" instead of IP!
+
+---
+
+## PART 13: COMPLETE PRACTICE EXERCISE
+
+### Do This Now (10 Minutes)
+
+```bash
+# Step 1: Create network
+docker network create practice-net
+
+# Step 2: Run container 1
+docker run -d --name container1 --network practice-net nginx
+
+# Step 3: Run container 2
+docker run -d --name container2 --network practice-net nginx
+
+# Step 4: Test connection
+docker exec -it container1 bash
+apt-get update && apt-get install -y iputils-ping
+ping container2
+# Should work!
+exit
+
+# Step 5: Check network details
+docker network inspect practice-net
+
+# Step 6: Cleanup
+docker stop container1 container2
+docker rm container1 container2
+docker network rm practice-net
+```
+
+---
+
+## COMMAND REFERENCE
+
+```bash
+# LIST NETWORKS
+docker network ls
+
+# CREATE NETWORK
+docker network create NAME
+
+# INSPECT NETWORK
+docker network inspect NAME
+
+# DELETE NETWORK
+docker network rm NAME
+
+# RUN CONTAINER ON NETWORK
+docker run --network NAME IMAGE
+
+# CONNECT RUNNING CONTAINER TO NETWORK
+docker network connect NETWORK CONTAINER
+
+# DISCONNECT CONTAINER FROM NETWORK
+docker network disconnect NETWORK CONTAINER
+
+# CHECK CONTAINER'S NETWORK
+docker inspect CONTAINER | grep -A 10 Networks
+```
+
+---
+
+## TROUBLESHOOTING
+
+### Problem 1: Containers Can't Talk
+
+**Check:** Are they on same network?
+```bash
+docker inspect container1 | grep -A 5 Networks
+docker inspect container2 | grep -A 5 Networks
+```
+
+**Solution:** Put them on same network
+
+### Problem 2: Can't Ping by Name
+
+**Reason:** Using default bridge network
+
+**Solution:** Use custom network
+```bash
+docker network create my-net
+docker run --network my-net --name app1 nginx
+docker run --network my-net --name app2 nginx
+```
+
+### Problem 3: Can't Delete Network
+
+**Reason:** Containers still using it
+
+**Solution:**
+```bash
+docker stop $(docker ps -q)
+docker rm $(docker ps -aq)
+docker network rm NETWORK_NAME
+```
+
+---
+
+## KEY TAKEAWAYS
+
+1. **Default bridge** = Automatic network for containers
+2. **Custom networks** = Better! Can use container names
+3. **Separate networks** = Security isolation
+4. **docker network create** = Make new network
+5. **--network** = Connect container to network
+6. **Containers on same network** = Can talk
+7. **Containers on different networks** = Cannot talk (secure!)
+
+---
+
+## WHEN TO USE WHAT
+
+### Use Default Bridge:
+- Quick testing
+- Learning Docker
+- Single container
+
+### Use Custom Networks:
+- Production
+- Multiple containers need to talk
+- Want to use container names (not IPs)
+- Need security isolation
+
+### Use Host Network:
+- Never in production!
+- Only for testing
+
+---
+
+## WHAT'S NEXT?
+
+Day 29: Docker Interview Questions
+Day 30: Kubernetes Basics
+
+---
+
+**Remember: Custom networks = Better security + Easy container names!** 🚀
