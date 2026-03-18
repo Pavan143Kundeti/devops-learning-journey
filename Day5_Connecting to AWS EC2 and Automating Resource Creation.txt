@@ -1,0 +1,1004 @@
+Day 5 – Connecting to AWS EC2 and Automating Resource Creation
+Use this title for your notes.
+
+**Day 5 – Connecting to AWS EC2 and Automating Resource Creation (AWS CLI Basics)**
+
+Now I will explain the whole class in **very simple language**, step by step, with definitions and practical meaning.
+
+---
+
+# 1. What This Day Is About
+
+In earlier days you learned:
+
+* What a **virtual machine (VM)** is
+* How to **create an EC2 instance**
+
+Today the focus is two things:
+
+1. **How to login to the virtual machine**
+2. **How to create resources automatically instead of clicking in the AWS UI**
+
+This is important because in real DevOps work you may deal with **many servers**.
+
+Example:
+
+Company has
+
+* 2 servers for testing
+* 10 servers for staging
+* 50 servers for production
+
+You cannot manually create and manage everything using the AWS console.
+
+You must **automate**.
+
+---
+
+# 2. Different Ways to Create AWS Resources
+
+The instructor mentioned several automation options.
+
+These are ways to **control AWS programmatically**.
+
+| Method         | Meaning                                          |
+| -------------- | ------------------------------------------------ |
+| AWS Console    | Manual clicking in the browser                   |
+| AWS CLI        | Command line commands                            |
+| AWS API        | Programmatic communication with AWS              |
+| AWS CDK        | Write infrastructure using programming languages |
+| CloudFormation | Template-based infrastructure                    |
+| Terraform      | Popular Infrastructure-as-Code tool              |
+
+For today the important one is:
+
+**AWS CLI**
+
+---
+
+# 3. First Task: Login to EC2
+
+Before automation, you must know how to **connect to the server**.
+
+Because once a VM is created, you need to manage it.
+
+---
+
+# 4. Method 1 — Login Using AWS Console
+
+Steps:
+
+1. Go to **AWS Console**
+2. Open **EC2 Dashboard**
+3. Select the instance
+4. Click **Connect**
+5. AWS opens a browser terminal
+
+Now you are inside the machine.
+
+Example command:
+
+```
+touch Abhishek
+```
+
+Definition:
+
+**touch command**
+
+Creates an empty file.
+
+Example:
+
+```
+touch file1
+```
+
+Then check using:
+
+```
+ls
+```
+
+Definition:
+
+**ls command**
+
+Lists all files in the folder.
+
+---
+
+# Real World Example
+
+Think of the EC2 instance as:
+
+A computer located in an AWS data center.
+
+Your laptop connects to that computer over the internet.
+
+You control it by typing commands.
+
+---
+
+# 5. Why Console Login Is Not Good
+
+This method is easy but **not practical for real engineers**.
+
+Problems:
+
+1. You must open AWS every time
+2. Session expires quickly
+3. Very slow if you manage many servers
+4. Cannot automate
+
+Example situation:
+
+You must check **30 servers**.
+
+Opening 30 browser sessions is painful.
+
+Engineers prefer **terminal access**.
+
+---
+
+# 6. Method 2 — Login Using Terminal
+
+Instead of AWS browser terminal, use your **local terminal**.
+
+Different systems have different terminals.
+
+### Mac
+
+Best option:
+
+**iTerm**
+
+### Windows
+
+Options:
+
+* PuTTY
+* MobaXterm
+* NoMachine
+
+Most beginners use:
+
+**MobaXterm**
+
+Because:
+
+* Easy SSH connection
+* File transfer built-in
+* Good UI
+
+---
+
+# 7. Important Term: SSH
+
+Definition:
+
+**SSH (Secure Shell)**
+
+A protocol that allows you to securely connect to another computer.
+
+Simple meaning:
+
+SSH lets your laptop **control a remote server securely**.
+
+---
+
+Example command:
+
+```
+ssh ubuntu@3.89.45.22
+```
+
+Meaning:
+
+```
+ssh     → connection protocol
+ubuntu  → username
+3.89.45.22 → server IP
+```
+
+But this command will fail.
+
+Why?
+
+Because AWS requires **key authentication**.
+
+---
+
+# 8. What Is a Key Pair
+
+Definition:
+
+**Key Pair**
+
+A security system used by AWS to allow login.
+
+Two parts exist:
+
+1. **Public Key** → stored in the server
+2. **Private Key (.pem file)** → stored on your laptop
+
+Only when both match, login works.
+
+---
+
+Real world example:
+
+Think of it like a **house lock**.
+
+Lock on the door = Public Key
+Key in your pocket = Private Key
+
+Without the key, the door will not open.
+
+---
+
+# 9. Correct SSH Command
+
+You must provide the key file.
+
+Command:
+
+```
+ssh -i test11.pem ubuntu@3.89.45.22
+```
+
+Meaning:
+
+```
+-i → identity file
+test11.pem → private key
+ubuntu → username
+3.89.45.22 → server IP
+```
+
+---
+
+# 10. Permission Error Problem
+
+When you try this, you may see error:
+
+```
+Permissions are too open
+```
+
+Why?
+
+Because the **pem file is sensitive**.
+
+If everyone can access it, anyone could login to your server.
+
+---
+
+# Fix the Permission
+
+Use command:
+
+```
+chmod 600 test11.pem
+```
+
+Definition:
+
+**chmod**
+
+Changes file permissions.
+
+Meaning of 600:
+
+```
+Owner → read + write
+Others → no access
+```
+
+After that run again:
+
+```
+ssh -i test11.pem ubuntu@IP
+```
+
+Now login succeeds.
+
+---
+
+# 11. Verifying Connection
+
+Once connected, test it.
+
+Create a file:
+
+```
+touch Abhishek2
+```
+
+Check:
+
+```
+ls
+```
+
+If the file appears, connection works.
+
+---
+
+# 12. Instance Billing Concept
+
+AWS charges money while the instance is **running**.
+
+States of EC2:
+
+| State      | Meaning                        |
+| ---------- | ------------------------------ |
+| Running    | Server active, billing running |
+| Stopped    | Server paused                  |
+| Terminated | Server deleted                 |
+
+Best practice:
+
+Stop server when not using.
+
+Example:
+
+Testing server used only 2 hours.
+
+Stop it to save cost.
+
+---
+
+# 13. Automation Begins — AWS CLI
+
+Now the instructor introduces **AWS CLI**.
+
+Definition:
+
+**AWS CLI (Command Line Interface)**
+
+A tool that allows you to control AWS services using terminal commands.
+
+Instead of clicking UI, you type commands.
+
+---
+
+Example:
+
+Create S3 bucket
+
+```
+aws s3 mb s3://bucketname
+```
+
+List buckets
+
+```
+aws s3 ls
+```
+
+---
+
+# 14. Installing AWS CLI
+
+Download from AWS site.
+
+Choose based on OS:
+
+* Windows → MSI installer
+* Mac → pkg installer
+* Linux → package manager
+
+---
+
+# 15. Verify Installation
+
+Run:
+
+```
+aws --version
+```
+
+Example output:
+
+```
+aws-cli/2.15.0 Python/3.x
+```
+
+That means installation succeeded.
+
+---
+
+# 16. Problem After Installation
+
+Even if CLI is installed, it **does not know your AWS account**.
+
+So you must authenticate.
+
+---
+
+# 17. Authentication Using Access Keys
+
+Go to:
+
+AWS Console → Profile → Security Credentials
+
+Create:
+
+**Access Key**
+
+You will get two values:
+
+```
+Access Key ID
+Secret Access Key
+```
+
+---
+
+Definition:
+
+**Access Key**
+
+Credential used by programs to access AWS.
+
+Think of it like:
+
+```
+username + password
+for software access
+```
+
+---
+
+# 18. Configure AWS CLI
+
+Run:
+
+```
+aws configure
+```
+
+You will enter:
+
+```
+Access Key ID
+Secret Access Key
+Region
+Output format
+```
+
+Example:
+
+```
+Access Key: XXXXX
+Secret Key: XXXXX
+Region: us-east-1
+Output: json
+```
+
+Now CLI is connected to your AWS account.
+
+---
+
+# 19. Test CLI Connection
+
+Run:
+
+```
+aws s3 ls
+```
+
+Meaning:
+
+List all S3 buckets.
+
+If buckets appear, authentication worked.
+
+---
+
+# 20. Create Bucket Using CLI
+
+Command:
+
+```
+aws s3 mb s3://mybucketname
+```
+
+Definition:
+
+```
+mb = make bucket
+```
+
+---
+
+# 21. Automating EC2 Creation
+
+You can also create EC2 using CLI.
+
+Example command:
+
+```
+aws ec2 run-instances
+```
+
+But this command needs parameters:
+
+* AMI ID
+* instance type
+* key pair
+* security group
+* subnet
+
+These are provided in AWS documentation.
+
+---
+
+# 22. Infrastructure as Code (Important Concept)
+
+The instructor briefly mentioned:
+
+* CloudFormation
+* Terraform
+
+These belong to:
+
+**Infrastructure as Code (IaC)**
+
+Definition:
+
+Infrastructure as Code means **creating servers using code instead of manual clicks**.
+
+Example:
+
+Instead of manually creating:
+
+* 10 servers
+* 2 load balancers
+* 5 databases
+
+You write one script.
+
+Run it.
+
+Everything is created automatically.
+
+---
+
+# Real Example
+
+Netflix infrastructure cannot be created manually.
+
+They use IaC tools.
+
+---
+
+# 23. Another Automation Method — Python
+
+AWS provides Python library:
+
+**boto3**
+
+Definition:
+
+**boto3**
+
+Python SDK that allows programs to control AWS services.
+
+Example Python script:
+
+```
+import boto3
+
+ec2 = boto3.client('ec2')
+response = ec2.describe_instances()
+
+print(response)
+```
+
+This script lists EC2 instances.
+
+So developers can build automation scripts.
+
+---
+
+# 24. Main Automation Options
+
+Summary.
+
+| Method         | Usage                     |
+| -------------- | ------------------------- |
+| AWS CLI        | Command line automation   |
+| CloudFormation | Template automation       |
+| Terraform      | Industry standard IaC     |
+| Python boto3   | Custom automation scripts |
+
+---
+
+# 25. Assignment (What You Should Practice)
+
+Install AWS CLI.
+
+Then try:
+
+List S3 buckets
+
+```
+aws s3 ls
+```
+
+Create bucket
+
+```
+aws s3 mb s3://testbucket123
+```
+
+Delete bucket
+
+```
+aws s3 rb s3://testbucket123
+```
+
+---
+
+# Final Simple Understanding
+
+Three main skills you learned today:
+
+1. **Connect to EC2 using SSH**
+2. **Install and configure AWS CLI**
+3. **Automate AWS tasks using commands**
+
+This is the **first step toward DevOps automation**.
+
+---
+
+If you want, I can also explain something extremely important that most beginners miss after this lesson:
+
+**The exact architecture of how your laptop connects to EC2 through the internet (security groups, ports, SSH flow).**
+
+That concept makes everything about EC2 **crystal clear**.
+Your confusion is valid. The earlier explanation mixed tools without clearly separating **purpose**. That’s the real problem. Let’s fix it properly.
+
+You need to understand **three layers**:
+
+1. **The protocol (SSH)**
+2. **The terminal tool (where you type commands)**
+3. **The AWS automation tool (AWS CLI)**
+
+These are **different things**, but beginners mix them.
+
+---
+
+# 1. First Concept: SSH (The Actual Technology)
+
+**SSH = Secure Shell**
+
+Definition
+A network protocol used to **securely connect to another computer over the internet**.
+
+Simple meaning
+
+Your laptop → connects → remote server.
+
+Example:
+
+```
+ssh ubuntu@3.89.45.22
+```
+
+You are telling your laptop:
+
+"Connect to the server at this IP and login as user ubuntu."
+
+Important point:
+
+SSH is **not a software**.
+
+It is a **communication method**.
+
+Like:
+
+* HTTP for websites
+* FTP for file transfer
+* SSH for remote login
+
+---
+
+# 2. Where Do You Type the SSH Command?
+
+You must type the command in a **terminal**.
+
+A terminal is simply a **command window**.
+
+Different systems have different terminals.
+
+### Windows terminals
+
+* Command Prompt
+* PowerShell
+* Windows Terminal
+* Git Bash
+
+Example:
+
+Open PowerShell and type:
+
+```
+ssh -i key.pem ubuntu@3.89.45.22
+```
+
+This works if SSH is installed.
+
+Modern Windows already has SSH.
+
+---
+
+# 3. Then Why Does MobaXterm Exist?
+
+Because older Windows systems **did not have good SSH tools**.
+
+So tools were created.
+
+One popular tool is:
+
+**MobaXterm**
+
+Definition
+
+MobaXterm is a **terminal software with built-in SSH and file transfer tools**.
+
+Think of it like:
+
+A **remote server control panel**.
+
+It gives:
+
+* SSH connection
+* terminal
+* file browser
+* SFTP transfer
+* session saving
+
+---
+
+# 4. When to Use Each Option
+
+Now the important clarity.
+
+### Option 1 — Normal Terminal (PowerShell / CMD)
+
+Used when you want **direct command control**.
+
+Example:
+
+```
+ssh -i mykey.pem ubuntu@3.89.45.22
+```
+
+Used by:
+
+* DevOps engineers
+* backend engineers
+* automation scripts
+
+Advantages
+
+* lightweight
+* fast
+* scriptable
+
+---
+
+### Option 2 — MobaXterm
+
+Used when you want **easy visual connection**.
+
+Steps inside MobaXterm:
+
+1. Click Session
+2. Choose SSH
+3. Enter IP
+4. Select key file
+
+Advantages
+
+* beginner friendly
+* file transfer GUI
+* saved sessions
+
+---
+
+### Real industry reality
+
+Engineers mostly use:
+
+* **Terminal**
+* **VS Code SSH**
+* **iTerm (Mac)**
+
+Tools like MobaXterm are mostly **learning tools or convenience tools**.
+
+---
+
+# 5. Where Does AWS CLI Fit?
+
+This is **completely different**.
+
+AWS CLI is **not for connecting to servers**.
+
+AWS CLI is used to **control AWS services**.
+
+Example tasks:
+
+Create EC2
+
+```
+aws ec2 run-instances
+```
+
+Create S3 bucket
+
+```
+aws s3 mb s3://mybucket
+```
+
+List servers
+
+```
+aws ec2 describe-instances
+```
+
+Delete resources
+
+```
+aws ec2 terminate-instances
+```
+
+So AWS CLI is used to **manage cloud infrastructure**.
+
+---
+
+# 6. Simple Analogy (Very Clear)
+
+Imagine this situation.
+
+You rented a computer in another city.
+
+You have two tasks.
+
+### Task 1 — Log into the computer
+
+You use **SSH**
+
+Example:
+
+```
+ssh ubuntu@serverIP
+```
+
+Tools for that:
+
+* PowerShell
+* MobaXterm
+* PuTTY
+* VS Code
+
+---
+
+### Task 2 — Create more computers in the cloud
+
+You use **AWS CLI**
+
+Example:
+
+```
+aws ec2 run-instances
+```
+
+This talks to AWS **API**, not your server.
+
+---
+
+# 7. Visual Understanding
+
+Think of it like this.
+
+```
+Your Laptop
+   |
+   | SSH
+   v
+EC2 Server
+```
+
+This is **server login**.
+
+---
+
+AWS CLI is different.
+
+```
+Your Laptop
+   |
+   | AWS CLI
+   v
+AWS Cloud API
+   |
+   v
+Create EC2 / S3 / VPC
+```
+
+This is **cloud management**.
+
+---
+
+# 8. Summary (Most Important Part)
+
+| Tool      | Purpose                        |
+| --------- | ------------------------------ |
+| SSH       | Protocol to login to server    |
+| Terminal  | Place where you type commands  |
+| MobaXterm | GUI terminal with SSH features |
+| AWS CLI   | Tool to manage AWS services    |
+
+---
+
+# 9. Real DevOps Workflow
+
+A DevOps engineer typically does this:
+
+Step 1
+
+Create server using AWS CLI or Terraform
+
+```
+aws ec2 run-instances
+```
+
+Step 2
+
+Login to the server
+
+```
+ssh ubuntu@serverIP
+```
+
+Step 3
+
+Install software
+
+```
+sudo apt install docker
+```
+
+Step 4
+
+Deploy application.
+
+---
+
+# 10. One Important Truth Beginners Miss
+
+These tools are just **interfaces**.
+
+What really matters is understanding:
+
+* networking
+* authentication
+* servers
+* cloud infrastructure
+
+Tools keep changing.
+
+Concepts stay forever.
+
+---
+
+If you want, I can also explain one concept that will **remove 80% of EC2 confusion**:
+
+**What actually happens inside AWS when you create an EC2 instance**
+(VPC, Subnet, Internet Gateway, Security Group, Route Table).
+
+That architecture is what most beginners never understand.
