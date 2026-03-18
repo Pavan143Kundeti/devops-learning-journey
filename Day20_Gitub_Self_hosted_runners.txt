@@ -1,0 +1,247 @@
+# GitHub Actions with Self-Hosted Runners - Complete Guide
+
+## What You'll Learn
+- What are Self-Hosted Runners vs GitHub-Hosted Runners
+- When to use Self-Hosted Runners
+- How to set up Self-Hosted Runners step by step
+- Security considerations
+- Interview questions and answers
+- Comparison with Jenkins
+
+---
+
+## Part 1: Understanding Runners
+
+### What is a Runner?
+Think of a runner like a computer that does your work for you. When you want to build or test your code, the runner is the machine that actually runs those tasks.
+
+### Two Types of Runners
+
+#### 1. GitHub-Hosted Runners
+- **What it is**: GitHub gives you a free computer to use
+- **Who owns it**: GitHub owns and manages it
+- **Cost**: Free for public projects
+- **Lifespan**: Gets deleted after your job finishes
+- **Example**: Like borrowing a friend's computer - you use it and give it back
+
+#### 2. Self-Hosted Runners
+- **What it is**: You use your own computer/server
+- **Who owns it**: You own and manage it
+- **Cost**: You pay for the server
+- **Lifespan**: Stays running until you turn it off
+- **Example**: Like using your own computer at home
+
+---
+
+## Part 2: When to Use Self-Hosted Runners
+
+### Use Self-Hosted Runners When:
+
+1. **Private Projects**
+   - Your code is secret/private
+   - You don't want others to see your code
+
+2. **Security Concerns**
+   - Banking or financial applications
+   - You need to know exactly where your code runs
+   - You don't trust external servers
+
+3. **Special Requirements**
+   - Need more memory (32GB RAM)
+   - Need special software installed
+   - GitHub's free computers aren't powerful enough
+
+### Use GitHub-Hosted Runners When:
+- Your project is public (open source)
+- You want something simple and free
+- You don't have special requirements
+
+---
+
+## Part 3: Setting Up Self-Hosted Runner (Step by Step)
+
+### Step 1: Create an AWS EC2 Instance
+1. Go to AWS Console
+2. Click "Launch Instance"
+3. Name it "GitHub-Runner"
+4. Choose Ubuntu operating system
+5. Select default settings
+6. Choose your key pair (or create new one)
+
+### Step 2: Configure Security (Very Important!)
+1. Go to Security Groups
+2. Edit Inbound Rules:
+   - Add HTTP (port 80) - allow from anywhere
+   - Add HTTPS (port 443) - allow from anywhere
+3. Edit Outbound Rules:
+   - Add HTTP (port 80) - allow to anywhere
+   - Add HTTPS (port 443) - allow to anywhere
+
+**Why this matters**: GitHub needs to talk to your server, and your server needs to talk back to GitHub.
+
+### Step 3: Connect Your Runner to GitHub
+1. Go to your GitHub repository
+2. Click "Settings" tab
+3. Scroll down and click "Actions"
+4. Click "Runners"
+5. Click "New self-hosted runner"
+6. Choose your operating system (Linux)
+7. Choose architecture (usually x64)
+
+### Step 4: Run Commands on Your Server
+GitHub will show you commands like this:
+```bash
+# Download the runner
+mkdir actions-runner && cd actions-runner
+curl -o actions-runner-linux-x64-2.311.0.tar.gz -L https://github.com/actions/runner/releases/download/v2.311.0/actions-runner-linux-x64-2.311.0.tar.gz
+tar xzf ./actions-runner-linux-x64-2.311.0.tar.gz
+
+# Configure the runner
+./config.sh --url https://github.com/[your-username]/[your-repo] --token [SECRET-TOKEN]
+
+# Start the runner
+./run.sh
+```
+
+**Important**: Never share the token with anyone! It's like your password.
+
+### Step 5: Update Your GitHub Actions File
+1. Go to your repository
+2. Open `.github/workflows/your-action-file.yml`
+3. Change this line:
+   ```yaml
+   runs-on: ubuntu-latest  # GitHub-hosted
+   ```
+   To this:
+   ```yaml
+   runs-on: self-hosted    # Your own runner
+   ```
+
+### Step 6: Test It
+1. Make any change to your code
+2. Commit and push
+3. Watch your server terminal - it should say "Running job"
+4. Check GitHub - you should see a green checkmark when done
+
+---
+
+## Part 4: How It Works Behind the Scenes
+
+1. **You make a code change** → Push to GitHub
+2. **GitHub sees the change** → Looks for available runners
+3. **GitHub finds your runner** → Sends job to your server
+4. **Your server runs the job** → Executes your code/tests
+5. **Your server reports back** → Tells GitHub if it succeeded or failed
+6. **GitHub updates status** → Shows green checkmark or red X
+
+---
+
+## Part 5: Security Best Practices
+
+### Network Security
+- Only open ports 80 (HTTP) and 443 (HTTPS)
+- Never open "All Traffic" - this is dangerous
+- Use specific IP ranges if you know them
+
+### Token Security
+- Never share your runner token
+- Treat it like a password
+- If compromised, remove the runner and create a new one
+
+### Server Security
+- Keep your server updated
+- Use strong passwords
+- Monitor who has access
+
+---
+
+## Part 6: Interview Questions & Answers
+
+### Q1: "Why did you choose GitHub Actions over Jenkins?"
+
+**For Public Projects:**
+"We chose GitHub Actions because our project is open source and public. GitHub provides free runners for public projects, which saves costs. Also, since our code is already on GitHub, it makes sense to use GitHub's built-in CI/CD system."
+
+**For Private Projects:**
+"We use GitHub Actions because our entire development workflow is on GitHub - we use GitHub for code, project management, documentation (Wiki), security scanning, and insights. It creates a unified ecosystem."
+
+### Q2: "How do you secure sensitive information in GitHub Actions?"
+
+"We use GitHub's Secrets and Variables feature. In the repository settings, under 'Secrets and variables', we store sensitive data like API keys, passwords, and tokens. These are encrypted and only accessible during workflow runs."
+
+### Q3: "How do you write a GitHub Actions workflow file?"
+
+"We create a `.github/workflows` folder in our repository and add YAML files. The basic structure includes:
+- `on:` - defines when to run (push, pull_request, etc.)
+- `jobs:` - defines what to do
+- `runs-on:` - specifies which runner to use
+- `steps:` - lists the actual tasks to perform"
+
+### Q4: "What's the difference between GitHub-hosted and self-hosted runners?"
+
+"GitHub-hosted runners are provided by GitHub, free for public projects, but you don't control them. Self-hosted runners are your own servers - you have full control but pay for the infrastructure. Use self-hosted for private projects, special requirements, or security concerns."
+
+---
+
+## Part 7: GitHub Actions vs Jenkins Comparison
+
+### When to Choose GitHub Actions:
+✅ **Public/Open Source Projects** - Clear winner, it's free!
+✅ **GitHub-centric workflow** - Already using GitHub for everything
+✅ **Simple projects** - Easy to set up and maintain
+✅ **Small teams** - Less complexity needed
+
+### When to Choose Jenkins:
+✅ **Private Enterprise Projects** - More mature ecosystem
+✅ **Complex workflows** - More plugins and integrations available
+✅ **Multi-platform support** - Better support for various tools
+✅ **Advanced orchestration** - More control over complex pipelines
+
+### Current State (2026):
+- **GitHub Actions**: Growing fast, great for GitHub-based projects
+- **Jenkins**: More mature, better for complex enterprise needs
+- **Future**: GitHub Actions is catching up quickly
+
+---
+
+## Part 8: Common Problems and Solutions
+
+### Problem 1: Runner Not Connecting
+**Solution**: Check your security group settings. Make sure ports 80 and 443 are open.
+
+### Problem 2: Jobs Not Running
+**Solution**: Verify your workflow file uses `runs-on: self-hosted` and your runner is online.
+
+### Problem 3: Permission Errors
+**Solution**: Make sure the runner has proper permissions on the server and the GitHub token is valid.
+
+### Problem 4: Runner Goes Offline
+**Solution**: Check if your EC2 instance is running and the `./run.sh` script is still active.
+
+---
+
+## Part 9: Next Steps
+
+### Practice Project:
+1. Create a simple Python project
+2. Set up a self-hosted runner
+3. Create a workflow that runs Python tests
+4. Make changes and watch it work
+
+### Advanced Topics to Learn:
+- Multiple runners for different environments
+- Runner groups for organization
+- Scaling runners automatically
+- Using Docker containers as runners
+
+---
+
+## Summary
+
+Self-hosted runners give you control over where your code runs. They're perfect when you need security, special requirements, or are working with private projects. The setup involves creating a server, configuring network security, connecting it to GitHub, and updating your workflow files.
+
+Remember: Start simple, test everything, and always prioritize security!
+
+---
+
+**Key Takeaway**: GitHub Actions with self-hosted runners combines the ease of GitHub's platform with the control of your own infrastructure. Perfect for teams that need both flexibility and security.
