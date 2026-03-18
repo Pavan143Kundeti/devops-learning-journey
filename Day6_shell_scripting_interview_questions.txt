@@ -1,0 +1,876 @@
+I’ll convert what the instructor said into **clear beginner notes**, keep **every command he mentioned**, and also explain **why they exist in real work**.
+Think of this as **DevOps interview preparation for shell scripting**.
+
+Save this file as:
+
+**`Shell_Scripting_Interview_Questions_Notes.md`**
+
+---
+
+# Shell Scripting – Interview Questions (Episode 3)
+
+Instructor: Abhishek
+
+Purpose of this video:
+
+Prepare you for **common shell scripting interview questions** used in DevOps, Linux Admin, and SRE interviews.
+
+He collected about **20 common questions** asked in interviews.
+
+---
+
+# 1. Question: List Commonly Used Shell Commands
+
+This question checks one thing:
+
+Do you **actually use Linux daily** or are you only memorizing commands?
+
+So your answer must contain **real commands people use every day**.
+
+## Commands to mention
+
+### List files
+
+```bash
+ls
+```
+
+Example
+
+```bash
+ls
+```
+
+Shows files in current folder.
+
+---
+
+### Copy files
+
+```bash
+cp
+```
+
+Example
+
+```bash
+cp file1.txt file2.txt
+```
+
+Copies file.
+
+---
+
+### Move or rename files
+
+```bash
+mv
+```
+
+Example
+
+```bash
+mv file1.txt folder/
+```
+
+---
+
+### Create directory
+
+```bash
+mkdir
+```
+
+Example
+
+```bash
+mkdir project
+```
+
+Creates a folder.
+
+---
+
+### Create file
+
+```bash
+touch
+```
+
+Example
+
+```bash
+touch test.txt
+```
+
+Creates empty file.
+
+---
+
+### Open file editor
+
+```bash
+vim
+```
+
+Example
+
+```bash
+vim script.sh
+```
+
+Opens file in editor.
+
+---
+
+### Search inside files
+
+```bash
+grep
+```
+
+Example
+
+```bash
+grep error logs.txt
+```
+
+Shows lines containing **error**.
+
+---
+
+### Find files
+
+```bash
+find
+```
+
+Example
+
+```bash
+find /home -name "*.log"
+```
+
+Searches log files.
+
+---
+
+### Debug system
+
+```bash
+top
+```
+
+Shows CPU and memory usage.
+
+---
+
+### Check disk
+
+```bash
+df
+```
+
+Shows disk space.
+
+---
+
+## Important Advice from Instructor
+
+Do NOT start with advanced commands like:
+
+```
+netcat
+traceroute
+route
+```
+
+Those are used **only during troubleshooting**.
+
+Interviewers want **real daily commands first**.
+
+---
+
+# 2. Script to List All Processes
+
+Interview question:
+
+> Write a script to list all processes.
+
+Command used:
+
+```bash
+ps -ef
+```
+
+Meaning
+
+```
+ps → process status
+-e → show all processes
+-f → full details
+```
+
+Example output
+
+```
+UID   PID  PPID CMD
+root  1     0   systemd
+user  221   1   bash
+```
+
+---
+
+## Follow-up Question
+
+Interviewer might ask:
+
+> Only print process IDs.
+
+Example output line:
+
+```
+root 1234 1 0 bash
+```
+
+Column breakdown
+
+```
+1 → user
+2 → process ID
+3 → parent process
+```
+
+They want **column 2**.
+
+---
+
+### Solution using awk
+
+```bash
+ps -ef | awk '{print $2}'
+```
+
+Explanation
+
+```
+ps -ef → get processes
+| → pipe output
+awk → filter column
+$2 → column 2
+```
+
+---
+
+# 3. Print Only Errors From Remote Logs
+
+Real DevOps scenario:
+
+Logs may be stored in:
+
+* AWS S3
+* remote server
+* log storage
+
+You fetch logs using **curl**.
+
+---
+
+## Command Example
+
+```bash
+curl google.com
+```
+
+Returns webpage content.
+
+---
+
+## Filter specific lines
+
+Use:
+
+```bash
+grep
+```
+
+Example
+
+```bash
+curl google.com | grep href
+```
+
+This prints only lines containing **href**.
+
+---
+
+## Real log example
+
+If log file has:
+
+```
+INFO service started
+TRACE connecting database
+ERROR connection failed
+```
+
+To get only errors:
+
+```bash
+curl logfile_url | grep ERROR
+```
+
+---
+
+## Why pipe is required
+
+Pipe:
+
+```
+|
+```
+
+Means:
+
+Send output of command 1 → into command 2.
+
+Without pipe
+
+```
+curl logfile grep error
+```
+
+System thinks **grep is hostname**.
+
+Pipe connects them.
+
+---
+
+## Command Breakdown
+
+```
+curl → download remote file
+grep → filter text
+| → connect commands
+```
+
+---
+
+# 4. Numbers Divisible by 3 and 5 but Not 15
+
+Interview logic question.
+
+Example numbers:
+
+```
+1 → 100
+```
+
+Numbers divisible by 3
+
+```
+3
+6
+9
+12
+15
+```
+
+Numbers divisible by 5
+
+```
+5
+10
+15
+```
+
+But we must **exclude 15**.
+
+---
+
+## Script
+
+```bash
+#!/bin/bash
+
+for i in {1..100}
+do
+  if [[ ($i%3 -eq 0 || $i%5 -eq 0) && $i%15 -ne 0 ]]
+  then
+     echo $i
+  fi
+done
+```
+
+---
+
+## Logic Explanation
+
+```
+%i → modulus operator
+%3 → divisible by 3
+%5 → divisible by 5
+%15 → divisible by 15
+```
+
+Condition
+
+```
+(3 OR 5) AND NOT 15
+```
+
+---
+
+# 5. Count Number of "s" in a Word
+
+Example word
+
+```
+Mississippi
+```
+
+Count how many **s**.
+
+Answer
+
+```
+4
+```
+
+---
+
+## Script
+
+```bash
+#!/bin/bash
+
+x="Mississippi"
+
+grep -o "s" <<< "$x" | wc -l
+```
+
+---
+
+## Explanation
+
+```
+grep -o → print each match separately
+<<< → pass variable as input
+wc -l → count lines
+```
+
+So each **s** becomes a line.
+
+Then wc counts lines.
+
+---
+
+# 6. Debug a Shell Script
+
+Command
+
+```bash
+set -x
+```
+
+Example
+
+```bash
+#!/bin/bash
+set -x
+```
+
+This enables **debug mode**.
+
+Meaning:
+
+Every command will be printed before execution.
+
+Example output
+
+```
++ echo hello
+hello
+```
+
+Used when script fails.
+
+---
+
+# 7. What is CronTab?
+
+CronTab = **task scheduler in Linux**
+
+It runs commands **automatically at a scheduled time**.
+
+Example:
+
+Run script every day at **6 PM**.
+
+Instead of manually logging in.
+
+---
+
+## Example Cron Entry
+
+```bash
+0 18 * * * /home/script.sh
+```
+
+Meaning
+
+```
+0 → minute
+18 → hour (6pm)
+* → every day
+```
+
+---
+
+Real DevOps use cases
+
+```
+backup databases
+send reports
+rotate logs
+health monitoring
+run scripts
+```
+
+---
+
+# 8. Open File in Read Only Mode
+
+Normally we open file using
+
+```bash
+vim file.txt
+```
+
+Read-only mode
+
+```bash
+vim -R file.txt
+```
+
+This prevents editing.
+
+Useful when you only want to **view file safely**.
+
+---
+
+# 9. Difference Between Soft Link and Hard Link
+
+Important Linux concept.
+
+Command used
+
+```
+ln
+```
+
+---
+
+# Hard Link
+
+Hard link = **actual copy reference of file**
+
+Example
+
+```
+fileA
+fileB
+```
+
+Both point to **same data block**.
+
+Even if original file deleted
+
+Hard link still works.
+
+---
+
+# Soft Link (Symbolic Link)
+
+Soft link = **shortcut to file**
+
+Example
+
+```
+python → python3
+```
+
+If original deleted
+
+Soft link **breaks**.
+
+---
+
+## Command
+
+Create soft link
+
+```bash
+ln -s fileA linkA
+```
+
+---
+
+# 10. Break vs Continue
+
+Used inside loops.
+
+---
+
+## Break
+
+Stops loop immediately.
+
+Example
+
+```
+for i in 1..100
+```
+
+If break at 5
+
+Loop stops at 5.
+
+---
+
+## Continue
+
+Skip current iteration.
+
+Example
+
+Skip number 15.
+
+Loop continues after that.
+
+---
+
+# 11. Disadvantages of Shell Scripting
+
+Example answer
+
+Shell scripts are:
+
+1. Not strongly typed
+2. Hard to maintain large projects
+3. Limited debugging
+4. Slow compared to compiled languages
+
+Example issue
+
+Variable not declared but script still runs.
+
+Unless you use:
+
+```bash
+set -u
+```
+
+---
+
+# 12. Types of Loops
+
+Shell scripting loops:
+
+### For Loop
+
+Used when range known.
+
+Example
+
+```
+1 to 100
+```
+
+---
+
+### While Loop
+
+Runs while condition true.
+
+---
+
+### Until Loop
+
+Runs until condition becomes true.
+
+---
+
+# 13. Dynamic vs Static Typing
+
+Shell scripting is **dynamically typed**.
+
+Example
+
+```
+x=5
+x="hello"
+```
+
+Both valid.
+
+No type declaration needed.
+
+---
+
+# 14. Network Troubleshooting Tool
+
+Command
+
+```bash
+traceroute google.com
+```
+
+Shows path packets travel.
+
+Example route
+
+```
+Laptop
+Router
+ISP
+Internet backbone
+Google server
+```
+
+Each step is called a **hop**.
+
+Used to debug network latency.
+
+---
+
+# 15. Sort Names in File
+
+Linux already has command
+
+```bash
+sort
+```
+
+Example
+
+```
+sort names.txt
+```
+
+Sorts alphabetically.
+
+Interview tip:
+
+Always mention **simplest command first**.
+
+---
+
+# 16. Managing Huge Log Files
+
+Large applications generate huge logs.
+
+Example
+
+```
+100GB logs per day
+```
+
+If you keep everything
+
+Disk will fill.
+
+---
+
+## Solution: Log Rotation
+
+Tool
+
+```
+logrotate
+```
+
+---
+
+Example configuration
+
+```
+rotate daily
+compress logs
+delete after 30 days
+```
+
+Example output
+
+```
+app.log
+app.log.1.gz
+app.log.2.gz
+```
+
+Old logs compressed and rotated.
+
+---
+
+# Real DevOps Tools Based on These Concepts
+
+These commands appear in tools like:
+
+```
+Docker
+Kubernetes
+Jenkins
+Linux servers
+AWS instances
+```
+
+Example real scenario
+
+Engineer connects to server
+
+```
+ssh server
+```
+
+Then runs
+
+```
+top
+df
+ps
+grep logs
+```
+
+to debug production issue.
+
+---
+
+# What This Video Was Teaching
+
+Main idea:
+
+Prepare you for **Linux + DevOps interviews**.
+
+Topics tested:
+
+```
+basic linux commands
+process monitoring
+logs
+shell scripting logic
+network debugging
+automation
+```
+
+---
+
+If you want, I can also show you **the 15 most important shell scripting interview questions DevOps engineers actually get in companies like**
+
+* TCS
+* Infosys
+* Wipro
+* Accenture
+* Amazon
+* startups
+
+Those questions are **slightly harder than this video** but very common.
