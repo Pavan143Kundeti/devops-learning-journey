@@ -1,0 +1,1207 @@
+I will convert this **Day-4 video** into **very simple notes**, step-by-step, with **real world examples**, and explain it like **you are a small kid learning computers for the first time**. But the logic will still match what happens in real DevOps work.
+
+---
+
+# DevOps Day 4 — Virtual Machines (Part 2)
+
+Today’s topic is simple:
+
+**How to create Virtual Machines and how DevOps engineers automate it.**
+
+Yesterday you learned:
+
+* What is a server
+* What is a virtual machine
+* What is a cloud provider
+* How AWS / Azure give you VMs
+
+Today we go one step deeper.
+
+---
+
+# 1. Simple Story First
+
+Imagine you work in a company.
+
+People in the company need **servers to run applications**.
+
+Example requests from employees:
+
+```
+Developer 1: I need a server for testing
+Developer 2: I need a server for my app
+Developer 3: I need a server for database
+Developer 4: I need a server for automation
+```
+
+All these people come to **you (DevOps Engineer)**.
+
+Your job is:
+
+**Create virtual machines for them.**
+
+---
+
+# 2. How VMs Are Created (Basic Process)
+
+You sit with your **laptop**.
+
+From your laptop you open a **browser**.
+
+Example:
+
+```
+Chrome
+Edge
+Firefox
+```
+
+Then you open a **cloud console**.
+
+Example:
+
+* AWS Console
+* Azure Portal
+
+---
+
+### Example Flow
+
+Step 1
+
+You open AWS Console.
+
+Step 2
+
+You request a new VM.
+
+Step 3
+
+AWS creates a VM in their data center.
+
+Step 4
+
+AWS gives you details.
+
+Example response:
+
+```
+IP Address: 18.210.33.10
+Username: ubuntu
+Login Key: key.pem
+```
+
+Now you can connect to the server.
+
+---
+
+# 3. What Actually Happens Behind the Scene
+
+Your laptop → sends request → Cloud provider
+
+Cloud provider:
+
+```
+AWS Data Center
+|
+Physical Server
+|
+Hypervisor
+|
+Virtual Machine Created
+```
+
+You only see the **virtual machine**.
+
+You never see the real physical server.
+
+---
+
+# 4. AWS and Azure Terminology
+
+Different cloud companies use different names.
+
+### AWS
+
+Virtual machine is called:
+
+**EC2 Instance**
+
+Example:
+
+```
+EC2 = Elastic Compute Cloud
+```
+
+---
+
+### Azure
+
+Microsoft calls it simply:
+
+**Virtual Machine**
+
+---
+
+### Google Cloud
+
+They call it:
+
+**Compute Engine**
+
+---
+
+But the concept is the same.
+
+All are **virtual machines**.
+
+---
+
+# 5. Manual VM Creation (Basic Method)
+
+Let’s say someone requests:
+
+```
+Please create 1 server.
+```
+
+You go to AWS Console.
+
+You click:
+
+```
+EC2 → Launch Instance
+```
+
+Then choose:
+
+```
+Operating System
+CPU
+RAM
+Storage
+Network
+Key Pair
+```
+
+Then click:
+
+```
+Launch
+```
+
+VM is created.
+
+---
+
+### Example Configuration
+
+```
+OS: Ubuntu
+CPU: 1
+RAM: 1GB
+Storage: 8GB
+```
+
+AWS then gives:
+
+```
+IP address
+Login key
+Server details
+```
+
+You give this to the developer.
+
+---
+
+# 6. The Real DevOps Problem
+
+Now imagine a **big company**.
+
+Instead of 1 request you receive:
+
+```
+100 requests per day
+```
+
+Example:
+
+```
+Team A → 10 servers
+Team B → 15 servers
+Team C → 20 servers
+Testing → 25 servers
+Automation → 30 servers
+```
+
+Total:
+
+```
+100 servers
+```
+
+Now ask yourself honestly.
+
+Will you go to AWS console **100 times** and click buttons?
+
+That is:
+
+* slow
+* boring
+* error-prone
+
+This is **bad DevOps practice**.
+
+DevOps goal is:
+
+**Automation.**
+
+---
+
+# 7. DevOps Thinking
+
+DevOps engineers always ask:
+
+> Can I automate this?
+
+Instead of manual work.
+
+Example:
+
+Bad method
+
+```
+Click 100 times
+```
+
+Better method
+
+```
+Run 1 script
+Create 100 servers
+```
+
+That is real DevOps work.
+
+---
+
+# 8. How Automation Works
+
+Cloud providers give something called:
+
+**API**
+
+---
+
+# 9. What is an API (Super Simple Explanation)
+
+API = A way for programs to talk to a service.
+
+Example real life:
+
+You go to restaurant.
+
+You don’t go into the kitchen.
+
+You talk to **waiter**.
+
+Waiter talks to kitchen.
+
+Kitchen prepares food.
+
+Food comes back to you.
+
+---
+
+### Mapping
+
+```
+You → Script
+Waiter → API
+Kitchen → Cloud server
+Food → Virtual Machine
+```
+
+---
+
+# 10. AWS API Example
+
+AWS provides:
+
+```
+EC2 API
+```
+
+Your script sends request:
+
+```
+Create VM
+OS: Ubuntu
+RAM: 4GB
+CPU: 2
+```
+
+AWS API checks:
+
+3 things.
+
+---
+
+### 1️⃣ Request must be valid
+
+Example correct format.
+
+```
+OS=Ubuntu
+CPU=2
+RAM=4GB
+```
+
+---
+
+### 2️⃣ User must be authenticated
+
+Means:
+
+You must prove **who you are**.
+
+Example:
+
+```
+AWS Access Key
+AWS Secret Key
+```
+
+---
+
+### 3️⃣ User must be authorized
+
+Example:
+
+Maybe you have AWS account.
+
+But you may **not have permission to create servers**.
+
+Then AWS will reject.
+
+---
+
+# 11. Once Everything is Correct
+
+AWS API creates the VM.
+
+Then returns:
+
+```
+Instance ID
+IP Address
+Status
+```
+
+Now your script prints it.
+
+Done.
+
+---
+
+# 12. Tools Used for Automation
+
+DevOps engineers use multiple tools.
+
+---
+
+# Method 1 — AWS CLI
+
+CLI means:
+
+**Command Line Interface**
+
+Instead of clicking UI you type commands.
+
+Example:
+
+```
+aws ec2 run-instances
+```
+
+This command creates VM.
+
+---
+
+### Real Example
+
+```
+aws ec2 run-instances \
+--image-id ami-12345 \
+--count 10 \
+--instance-type t2.micro
+```
+
+Result:
+
+```
+10 virtual machines created
+```
+
+---
+
+# Method 2 — Direct API
+
+If you are a programmer.
+
+You can directly call API.
+
+Example using Python.
+
+---
+
+# Method 3 — Python (Boto3)
+
+AWS provides Python library.
+
+Called:
+
+```
+boto3
+```
+
+Example:
+
+```
+import boto3
+ec2 = boto3.client('ec2')
+ec2.run_instances()
+```
+
+Python script → creates VM.
+
+---
+
+# Method 4 — CloudFormation (CFT)
+
+CloudFormation is a **template file**.
+
+You write infrastructure in code.
+
+Example:
+
+```
+Create 3 servers
+Create load balancer
+Create storage
+```
+
+AWS reads the template and creates everything.
+
+---
+
+# Method 5 — Terraform (Very Popular)
+
+Terraform is a tool created by **HashiCorp**.
+
+It works with:
+
+```
+AWS
+Azure
+Google Cloud
+```
+
+One code → works everywhere.
+
+Example:
+
+```
+terraform apply
+```
+
+Boom.
+
+Infrastructure created.
+
+---
+
+# 13. Why Terraform Became Popular
+
+Because companies use **multiple clouds**.
+
+Example company architecture:
+
+```
+AI Workload → Google Cloud
+Database → AWS
+Apps → Azure
+```
+
+This is called:
+
+**Hybrid Cloud**
+
+---
+
+### Hybrid Cloud Example
+
+Company setup:
+
+```
+AWS → Backend servers
+Azure → Internal apps
+Google Cloud → Machine Learning
+```
+
+Terraform can control all.
+
+---
+
+# 14. When NOT to Use Terraform
+
+If company only uses **AWS**.
+
+Example:
+
+```
+100% AWS infrastructure
+```
+
+Then you can use:
+
+```
+AWS CLI
+AWS API
+CloudFormation
+AWS CDK
+```
+
+These are **AWS native tools**.
+
+---
+
+# 15. What is AWS CDK
+
+CDK means:
+
+```
+Cloud Development Kit
+```
+
+You write infrastructure using programming languages.
+
+Example:
+
+```
+Python
+Java
+TypeScript
+```
+
+AWS converts it to infrastructure.
+
+---
+
+# 16. Practical Example — Creating VM in AWS
+
+Steps:
+
+### Step 1
+
+Open:
+
+```
+aws.amazon.com
+```
+
+---
+
+### Step 2
+
+Login to:
+
+```
+AWS Console
+```
+
+---
+
+### Step 3
+
+Search:
+
+```
+EC2
+```
+
+---
+
+### Step 4
+
+Click:
+
+```
+Launch Instance
+```
+
+---
+
+### Step 5
+
+Give instance name.
+
+Example:
+
+```
+test-server
+```
+
+---
+
+### Step 6
+
+Choose OS.
+
+Example:
+
+```
+Ubuntu
+Amazon Linux
+Windows
+RedHat
+```
+
+For DevOps learning:
+
+**Ubuntu is best.**
+
+---
+
+### Step 7
+
+Choose instance type.
+
+Example free one:
+
+```
+t2.micro
+```
+
+Resources:
+
+```
+1 CPU
+1GB RAM
+```
+
+Free tier.
+
+---
+
+### Step 8
+
+Create Key Pair
+
+This is your **login key**.
+
+Example:
+
+```
+my-key.pem
+```
+
+Save this file carefully.
+
+Without this key:
+
+You **cannot login to server**.
+
+---
+
+### Step 9
+
+Click:
+
+```
+Launch Instance
+```
+
+After few seconds.
+
+Server created.
+
+---
+
+# 17. What AWS Gives You
+
+Example output:
+
+```
+Instance ID: i-2398349823
+IP Address: 3.89.45.22
+Key File: my-key.pem
+```
+
+Now you can connect.
+
+Example:
+
+```
+ssh -i my-key.pem ubuntu@3.89.45.22
+```
+
+Now you are inside the server.
+
+---
+
+# 18. Creating VM in Azure
+
+Almost same process.
+
+Steps:
+
+```
+portal.azure.com
+```
+
+Login.
+
+Then:
+
+```
+Create Resource
+→ Virtual Machine
+```
+
+Choose:
+
+```
+OS
+CPU
+RAM
+Region
+```
+
+Click:
+
+```
+Create
+```
+
+VM created.
+
+---
+
+# 19. Important DevOps Lesson
+
+UI creation is only for **learning**.
+
+Real DevOps work is:
+
+```
+Automation
+Infrastructure as Code
+```
+
+Meaning:
+
+```
+Write code
+Create infrastructure
+```
+
+Not clicking buttons.
+
+---
+
+# 20. Final Simple Memory Trick
+
+```
+Laptop → sends request
+Cloud API → receives request
+Data Center → creates VM
+User → gets IP address
+```
+
+---
+
+# The Next Topic (Very Important)
+
+The next video will teach:
+
+1️⃣ How to **login to EC2 using SSH**
+
+2️⃣ How to create VM using **AWS CLI**
+
+3️⃣ How to automate VM creation
+
+4️⃣ How to manage infrastructure using **code**
+
+These are **core DevOps skills**.
+
+---
+
+If you want, I can also explain the **next 3 extremely important DevOps topics** in the same simple way:
+
+1️⃣ **VM vs Docker (Most asked interview question)**
+2️⃣ **What actually happens when you SSH into a server**
+3️⃣ **How AWS data centers really look inside**
+
+These three concepts make **DevOps 10x easier to understand.**
+Yes. Ready.
+
+From the **next content you send**, I will do these things clearly and in order:
+
+1. **Explain every concept in plain English**
+2. **Give real-world examples**
+3. **Show practical usage**
+4. **Add my own important points**
+5. **Define every technical term**
+6. **Show where it is used in real projects**
+7. **Add small notes for remembering**
+
+Nothing will be skipped.
+
+Now let me answer the two things you asked.
+
+---
+
+# 1. Where to write this command?
+
+```
+ssh -i my-key.pem ubuntu@3.89.45.22
+```
+
+You write this in the **Terminal**.
+
+Terminal means the **command line of your computer**.
+
+Examples:
+
+Windows
+
+* Command Prompt
+* PowerShell
+* Git Bash
+* Windows Terminal
+
+Linux / Mac
+
+* Terminal
+
+Most developers use **Git Bash or Windows Terminal**.
+
+---
+
+## Real Example
+
+You open terminal and type:
+
+```
+ssh -i my-key.pem ubuntu@3.89.45.22
+```
+
+Then press **Enter**.
+
+Now your computer connects to a **remote server**.
+
+That server may be an **AWS EC2 instance**.
+
+---
+
+# 2. Meaning of This SSH Command
+
+```
+ssh -i my-key.pem ubuntu@3.89.45.22
+```
+
+Break it into parts.
+
+### ssh
+
+**Definition**
+
+SSH = Secure Shell
+
+**Meaning**
+
+A secure way to **connect to another computer over the internet**.
+
+Example:
+
+You sit in India and connect to a server in **AWS US region**.
+
+You can control that server from your terminal.
+
+Just like sitting in front of it.
+
+---
+
+### -i
+
+`-i` means **identity file**
+
+It tells SSH:
+
+> use this private key to login
+
+---
+
+### my-key.pem
+
+This is a **private key file**.
+
+AWS gives this file when you create a server.
+
+Purpose:
+
+Authentication.
+
+Instead of password, AWS uses **key-based login**.
+
+Example file:
+
+```
+my-key.pem
+```
+
+You download it once.
+
+If you lose it → you cannot login.
+
+---
+
+### ubuntu
+
+This is the **username of the server OS**.
+
+Different OS have different usernames.
+
+Examples:
+
+Ubuntu server
+
+```
+ubuntu
+```
+
+Amazon Linux
+
+```
+ec2-user
+```
+
+CentOS
+
+```
+centos
+```
+
+---
+
+### 3.89.45.22
+
+This is the **Public IP Address** of the server.
+
+Definition:
+
+Public IP = internet address of the server.
+
+Example:
+
+```
+3.89.45.22
+```
+
+Your laptop connects to this IP.
+
+---
+
+# Real Life Example
+
+Think like this.
+
+Your laptop = your house
+
+AWS server = office computer
+
+SSH = remote control access
+
+The command means:
+
+> Use my key to securely login to that remote computer.
+
+---
+
+# What Happens After Running the Command
+
+When you run:
+
+```
+ssh -i my-key.pem ubuntu@3.89.45.22
+```
+
+The system will:
+
+1. Connect to the server IP
+2. Authenticate using the key
+3. Open remote terminal
+
+Now your terminal becomes **server terminal**.
+
+Example prompt:
+
+```
+ubuntu@ip-172-31-24-15:~$
+```
+
+Now you can run commands like:
+
+```
+ls
+mkdir
+docker
+git
+npm
+python
+```
+
+You are controlling the **cloud server**.
+
+---
+
+# 3. Infrastructure as Code (IaC)
+
+You asked this also.
+
+This is a **very important DevOps concept**.
+
+---
+
+## Definition
+
+Infrastructure as Code means:
+
+> Creating and managing servers, networks, and cloud resources using **code instead of manual setup**.
+
+---
+
+## Old Way (Manual)
+
+Engineer logs into AWS console.
+
+Then manually:
+
+1. Create server
+2. Configure network
+3. Install software
+4. Setup storage
+
+Every time repeating.
+
+Problems:
+
+* Slow
+* Human mistakes
+* Hard to reproduce
+
+---
+
+## Modern Way (Infrastructure as Code)
+
+Instead of manual steps, we write **configuration code**.
+
+Example:
+
+```
+create server
+RAM = 8GB
+CPU = 4
+OS = Ubuntu
+region = Mumbai
+```
+
+Run the code.
+
+AWS automatically creates everything.
+
+---
+
+## Popular IaC Tools
+
+DevOps engineers use:
+
+* Terraform
+* AWS CloudFormation
+* Ansible
+* Pulumi
+
+---
+
+## Example (Terraform)
+
+Example code:
+
+```
+resource "aws_instance" "web_server" {
+  ami           = "ami-123456"
+  instance_type = "t2.micro"
+}
+```
+
+Run:
+
+```
+terraform apply
+```
+
+Boom.
+
+Server is created automatically.
+
+---
+
+## Real Life Example
+
+Manual way:
+
+Cooking food by hand every day.
+
+Infrastructure as Code:
+
+Saving **recipe**.
+
+Whenever needed → run recipe → food ready.
+
+---
+
+# Short Memory Notes
+
+SSH
+
+```
+Remote login to servers securely
+```
+
+Virtual Machine
+
+```
+Software computer inside a physical server
+```
+
+Infrastructure as Code
+
+```
+Managing servers using code instead of manual setup
+```
+
+---
+
+Send the **next part of the NotebookLM content**.
+
+From that part onward I will also include:
+
+* Definitions
+* DevOps practical usage
+* Industry examples
+* Extra important points
+* Clear notes structure
+
+Nothing will be skipped.
